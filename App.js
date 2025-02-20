@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, TextInput, Button, ScrollView, StyleSheet, TouchableOpacity, Animated, Dimensions, FlatList } from 'react-native';
+import React, { useState, useEffect, useRef } from 'react';
+import { View, Text, TextInput, Button, ScrollView, StyleSheet, TouchableOpacity, Animated, Dimensions, FlatList, TouchableWithoutFeedback } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vector-icons
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -15,11 +15,19 @@ const Chatbot = () => {
   const [isSideMenuVisible, setIsSideMenuVisible] = useState(false);
   const [sideMenuButtonText, setSideMenuButtonText] = useState("Side Menu");
   const [pastChats, setPastChats] = useState([]);
+  const [selectedChat, setSelectedChat] = useState(null);
+  const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
   const sideMenuAnim = useState(new Animated.Value(-sideMenuWidth))[0];
+  const deleteButtonRef = useRef(null);
 
   useEffect(() => {
     loadPastChats();
+  }, []);
+
+  useEffect(() => {
+    // Remove the document event listener logic
   }, []);
 
   const saveChatHistory = async (chatHistory, title) => {
@@ -75,7 +83,7 @@ const Chatbot = () => {
         {
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: "Generate a short, relevant chat title based on this message." },
+            { role: 'system', content: "Generate a short, relevant and interestings chat title based on this message." },
             { role: 'user', content: firstMessage }
           ],
           max_tokens: 10
@@ -108,6 +116,8 @@ const Chatbot = () => {
       setChatTitle(generatedTitle);
     }
 
+    setIsTyping(true); // Show typing indicator
+
     try {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -133,6 +143,8 @@ const Chatbot = () => {
       const errorMessages = [...newMessages, { role: 'assistant', content: "Oops! Something went wrong." }];
       setMessages(errorMessages);
       await saveChatHistory(errorMessages, chatTitle);
+    } finally {
+      setIsTyping(false); // Hide typing indicator
     }
   };
 
@@ -170,71 +182,106 @@ const Chatbot = () => {
       await saveChatHistory(messages, chatTitle);
     }
     setMessages([{ role: 'assistant', content: "Hello! How can I help you today?" }]);
-    setChatTitle("AI Conversation");
+    setChatTitle("New Conversation");
     closeSideMenu();
   };
 
   const loadChat = async (title) => {
     await loadChatHistory(title);
     closeSideMenu();
+    setDeleteButtonVisible(false); // Hide delete button when loading a chat
+  };
+
+  const handleLongPress = (title) => {
+    setSelectedChat(title);
+    setDeleteButtonVisible(true); // Show delete button on long press
+  };
+
+  const deleteChat = async (title) => {
+    try {
+      await AsyncStorage.removeItem(`chatHistory_${title}`);
+      const updatedPastChats = pastChats.filter(chat => chat !== title);
+      await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
+      setPastChats(updatedPastChats);
+      if (chatTitle === title) {
+        setMessages([{ role: 'assistant', content: "Hello! How can I help you today?" }]);
+        setChatTitle("AI Conversation");
+      }
+    } catch (error) {
+      console.error("Error deleting chat:", error);
+    }
   };
 
   return (
-    <View style={styles.container}>
-      {/* Dynamic Chat Title */}
-      <View style={styles.upperCon}>
-        <Button title={sideMenuButtonText} onPress={toggleSideMenu} />
-        <Text style={styles.chatTitle}>{chatTitle}</Text>
-      </View>
-
-      <ScrollView style={styles.chatBox} contentContainerStyle={{ paddingBottom: 20 }}>
-        {messages.map((msg, index) => (
-          <View key={index} style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}>
-            <Text style={{ color: 'black' }}>{msg.content}</Text>
-          </View>
-        ))}
-      </ScrollView>
-
-      <View style={styles.inputContainer}>
-        <TextInput
-          style={styles.input}
-          value={userInput}
-          onChangeText={setUserInput}
-          placeholder="Chat input"
-          placeholderTextColor="white"
-        />
-        <View style={styles.roundButtonContainer}>
-          <Button style={styles.roundButton} onPress={sendMessage} title="Send" />
+    <TouchableWithoutFeedback onPress={() => {
+      if (deleteButtonVisible) {
+        setDeleteButtonVisible(false);
+        setSelectedChat(null);
+      }
+    }}>
+      <View style={styles.container}>
+        {/* Dynamic Chat Title */}
+        <View style={styles.upperCon}>
+          <Button title={sideMenuButtonText} onPress={toggleSideMenu} />
+          <Text style={styles.chatTitle}>{chatTitle}</Text>
         </View>
+
+        <ScrollView style={styles.chatBox} contentContainerStyle={{ paddingBottom: 20 }}>
+          {messages.map((msg, index) => (
+            <View key={index} style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}>
+              <Text style={{ color: 'black' }}>{msg.content}</Text>
+            </View>
+          ))}
+          {isTyping && (
+            <View style={styles.typingIndicator}>
+              <Text style={{ color: 'gray' }}>AI is typing...</Text>
+            </View>
+          )}
+        </ScrollView>
+
+        <View style={styles.inputContainer}>
+          <TextInput
+            style={styles.input}
+            value={userInput}
+            onChangeText={setUserInput}
+            placeholder="Chat input"
+            placeholderTextColor="white"
+          />
+          <View style={styles.roundButtonContainer}>
+            <Button style={styles.roundButton} onPress={sendMessage} title="Send" />
+          </View>
+        </View>
+
+        {/* Side Menu */}
+        {isSideMenuVisible && (
+          <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
+            <Button title="+" onPress={newChat} />
+            <Button title="Close" onPress={closeSideMenu} />
+            <Text style={styles.pastChatsTitle}>Chat history</Text>
+            <FlatList
+              data={pastChats}
+              keyExtractor={(item) => item}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  onPress={() => loadChat(item)}
+                  onLongPress={() => handleLongPress(item)}
+                >
+                  {selectedChat === item && deleteButtonVisible ? (
+                    <View ref={deleteButtonRef} style={styles.deleteButtonContainer}>
+                      <Button title="Delete" onPress={() => deleteChat(item)} color="red" />
+                    </View>
+                  ) : (
+                    <Text style={styles.pastChatItem}>{item}</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+              contentContainerStyle={{ padding: 20 }}
+              style={{ maxHeight: '100%' }}
+            />
+          </Animated.View>
+        )}
       </View>
-
-      {/* Side Menu */}
-{isSideMenuVisible && (
-  <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
-    
-    <Button title="New Chat" onPress={newChat} />
-    <Button title="Close" onPress={closeSideMenu} />
-
-    <Text style={styles.pastChatsTitle}>Chat history</Text>
-
-    <FlatList
-      data={pastChats}
-      keyExtractor={(item) => item}
-      renderItem={({ item }) => (
-        <TouchableOpacity onPress={() => loadChat(item)}>
-          <Text style={styles.pastChatItem}>{item}</Text>
-        </TouchableOpacity>
-      )}
-      
-      contentContainerStyle={{ padding: 20 }}
-      style={{ maxHeight: '100%' }}
-    />
-
-  </Animated.View>
-)}
-
-
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 
@@ -254,4 +301,6 @@ const styles = StyleSheet.create({
   sideMenu: { position: 'absolute'  , justifyContent:'center', width: '75%', backgroundColor: 'white' ,padding: 20, marginTop:'12%', zIndex: 1000,  height: '100%'},
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
+  deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
+  typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
 });
