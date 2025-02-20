@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vec
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from '@env';
+import { auto } from 'openai/_shims/registry.mjs';
 
 const Chatbot = () => {
   const [messages, setMessages] = useState([
@@ -208,26 +209,31 @@ const Chatbot = () => {
       </View>
 
       {/* Side Menu */}
-      {isSideMenuVisible && (
-        <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
-          
-          <Button title="New Chat" onPress={newChat} />
-          <Button title="Close" onPress={closeSideMenu} />
+{isSideMenuVisible && (
+  <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
+    
+    <Button title="New Chat" onPress={newChat} />
+    <Button title="Close" onPress={closeSideMenu} />
 
-          <Text style={styles.pastChatsTitle}>Chat history</Text>
-          
-          <FlatList
-            data={pastChats}
-            keyExtractor={(item) => item}
-            renderItem={({ item }) => (
-              <TouchableOpacity onPress={() => loadChat(item)}>
-                <Text style={styles.pastChatItem}>{item}</Text>
-              </TouchableOpacity>
-            )}
-            inverted 
-          />
-        </Animated.View>
+    <Text style={styles.pastChatsTitle}>Chat history</Text>
+
+    <FlatList
+      data={pastChats}
+      keyExtractor={(item) => item}
+      renderItem={({ item }) => (
+        <TouchableOpacity onPress={() => loadChat(item)}>
+          <Text style={styles.pastChatItem}>{item}</Text>
+        </TouchableOpacity>
       )}
+      
+      contentContainerStyle={{ padding: 20 }}
+      style={{ maxHeight: '100%' }}
+    />
+
+  </Animated.View>
+)}
+
+
     </View>
   );
 };
@@ -245,7 +251,7 @@ const styles = StyleSheet.create({
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: '#02843e', paddingHorizontal: 10 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute',  justifyContent:'center', width: '75%', backgroundColor: 'white' ,padding: 20, marginTop:'12%', zIndex: 1000 },
+  sideMenu: { position: 'absolute'  , justifyContent:'center', width: '75%', backgroundColor: 'white' ,padding: 20, marginTop:'12%', zIndex: 1000,  height: '100%'},
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
 });
