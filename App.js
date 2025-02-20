@@ -18,16 +18,30 @@ const Chatbot = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
+  const [olderMessages, setOlderMessages] = useState([]);
+  const [showOlderMessages, setShowOlderMessages] = useState(false);
+  const [cacheSize, setCacheSize] = useState(0);
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
   const sideMenuAnim = useState(new Animated.Value(-sideMenuWidth))[0];
   const deleteButtonRef = useRef(null);
+  const scrollViewRef = useRef(null);
 
   useEffect(() => {
     loadPastChats();
   }, []);
 
   useEffect(() => {
-    // Remove the document event listener logic
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollToEnd({ animated: true });
+    }
+  }, [messages]);
+
+  useEffect(() => {
+    const fetchCacheSize = async () => {
+      const size = await calculateCacheSize();
+      setCacheSize(size);
+    };
+    fetchCacheSize();
   }, []);
 
   const saveChatHistory = async (chatHistory, title) => {
@@ -43,7 +57,9 @@ const Chatbot = () => {
     try {
       const storedMessages = await AsyncStorage.getItem(`chatHistory_${title}`);
       if (storedMessages) {
-        setMessages(JSON.parse(storedMessages));
+        const parsedMessages = JSON.parse(storedMessages);
+        setMessages(parsedMessages.slice(-10)); // Load only the last 10 messages initially
+        setOlderMessages(parsedMessages.slice(0, -10)); // Store older messages separately
         setChatTitle(title);
       }
     } catch (error) {
@@ -190,6 +206,7 @@ const Chatbot = () => {
     await loadChatHistory(title);
     closeSideMenu();
     setDeleteButtonVisible(false); // Hide delete button when loading a chat
+    setSelectedChat(title); // Set the selected chat to highlight it
   };
 
   const handleLongPress = (title) => {
@@ -212,6 +229,50 @@ const Chatbot = () => {
     }
   };
 
+  const clearConversation = async () => {
+    try {
+      await AsyncStorage.removeItem(`chatHistory_${chatTitle}`);
+      const updatedPastChats = pastChats.filter(chat => chat !== chatTitle);
+      await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
+      setPastChats(updatedPastChats);
+      setMessages([{ role: 'assistant', content: "Hello! How can I help you today?" }]);
+      setChatTitle("AI Conversation");
+    } catch (error) {
+      console.error("Error clearing conversation:", error);
+    }
+  };
+
+  const loadOlderMessages = () => {
+    const olderMessagesToShow = olderMessages.slice(-10);
+    setMessages([...olderMessagesToShow, ...messages]);
+    setOlderMessages(olderMessages.slice(0, -10));
+    setShowOlderMessages(olderMessages.length > 10);
+  };
+
+  const calculateCacheSize = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const items = await AsyncStorage.multiGet(keys);
+      let totalSize = 0;
+      items.forEach(([key, value]) => {
+        totalSize += key.length + value.length;
+      });
+      return totalSize;
+    } catch (error) {
+      console.error("Error calculating cache size:", error);
+      return 0;
+    }
+  };
+
+  const clearCache = async () => {
+    try {
+      await AsyncStorage.clear();
+      alert("Cache cleared successfully!");
+    } catch (error) {
+      console.error("Error clearing cache:", error);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback onPress={() => {
       if (deleteButtonVisible) {
@@ -221,12 +282,22 @@ const Chatbot = () => {
     }}>
       <View style={styles.container}>
         {/* Dynamic Chat Title */}
-        <View style={styles.upperCon}>
+        <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
           <Button title={sideMenuButtonText} onPress={toggleSideMenu} />
-          <Text style={styles.chatTitle}>{chatTitle}</Text>
+          <Text style={styles.chatTitle}>{chatTitle} </Text>
+          <Button title="Clear" onPress={clearConversation} />
         </View>
 
-        <ScrollView style={styles.chatBox} contentContainerStyle={{ paddingBottom: 20 }}>
+        <ScrollView
+          style={styles.chatBox}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          ref={scrollViewRef}
+        >
+          {showOlderMessages && (
+            <TouchableOpacity onPress={loadOlderMessages}>
+              <Text style={styles.loadOlderMessages}>See older messages</Text>
+            </TouchableOpacity>
+          )}
           {messages.map((msg, index) => (
             <View key={index} style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}>
               <Text style={{ color: 'black' }}>{msg.content}</Text>
@@ -271,14 +342,21 @@ const Chatbot = () => {
                       <Button title="Delete" onPress={() => deleteChat(item)} color="red" />
                     </View>
                   ) : (
-                    <Text style={styles.pastChatItem}>{item}</Text>
+                    <Text style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}>{item}</Text>
                   )}
                 </TouchableOpacity>
               )}
               contentContainerStyle={{ padding: 20 }}
-              style={{ maxHeight: '100%' }}
+              style={{ maxHeight: '80%' }}
             />
-          </Animated.View>
+            
+              <Button title={`Clear cache (${cacheSize} bytes)`} onPress={async () => {
+                const size = await calculateCacheSize();
+                alert(`Cache size: ${size} bytes`);
+                clearCache();
+              }} />
+              <Button title={`Settings`}/>
+            </Animated.View>
         )}
       </View>
     </TouchableWithoutFeedback>
@@ -303,4 +381,9 @@ const styles = StyleSheet.create({
   pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
+  loadOlderMessages: { color: 'blue', textAlign: 'center', marginVertical: 10 },
+  highlightChatItem: {
+    backgroundColor: '#f5f5f5',
+    fontWeight: 'bold',
+  },
 });
