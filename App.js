@@ -29,7 +29,7 @@ const Chatbot = () => {
       console.error("Error saving chat history:", error);
     }
   };
-
+  
   const loadChatHistory = async (title) => {
     try {
       const storedMessages = await AsyncStorage.getItem(`chatHistory_${title}`);
@@ -47,7 +47,7 @@ const Chatbot = () => {
       const storedPastChats = await AsyncStorage.getItem('pastChats');
       const pastChatsArray = storedPastChats ? JSON.parse(storedPastChats) : [];
       if (!pastChatsArray.includes(title)) {
-        pastChatsArray.push(title);
+        pastChatsArray.unshift(title); // Add new chat to the beginning
         await AsyncStorage.setItem('pastChats', JSON.stringify(pastChatsArray));
         setPastChats(pastChatsArray);
       }
@@ -210,8 +210,12 @@ const Chatbot = () => {
       {/* Side Menu */}
       {isSideMenuVisible && (
         <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
+          
           <Button title="New Chat" onPress={newChat} />
-          <Text style={styles.pastChatsTitle}>Past Chats</Text>
+          <Button title="Close" onPress={closeSideMenu} />
+
+          <Text style={styles.pastChatsTitle}>Chat history</Text>
+          
           <FlatList
             data={pastChats}
             keyExtractor={(item) => item}
@@ -220,8 +224,8 @@ const Chatbot = () => {
                 <Text style={styles.pastChatItem}>{item}</Text>
               </TouchableOpacity>
             )}
+            inverted 
           />
-          <Button title="Close" onPress={closeSideMenu} />
         </Animated.View>
       )}
     </View>
@@ -231,7 +235,7 @@ const Chatbot = () => {
 export default Chatbot;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: '12%', backgroundColor: '#f5f5f5' },
+  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: '#f5f5f5', overflow: 'hidden'},
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
   userMessage: { alignSelf: 'flex-end', backgroundColor: '#e9e8e9', fontWeight: 'bold' },
@@ -241,7 +245,7 @@ const styles = StyleSheet.create({
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: '#02843e', paddingHorizontal: 10 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute', top: 0, bottom: 0, left: 0, justifyContent:'center', width: '75%', backgroundColor: 'white', padding: 20, zIndex: 1000 },
+  sideMenu: { position: 'absolute',  justifyContent:'center', width: '75%', backgroundColor: 'white' ,padding: 20, marginTop:'12%', zIndex: 1000 },
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
 });
