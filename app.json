@@ -4,11 +4,11 @@
     "slug": "newBolder",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+    "icon": "./assets/logoBolder.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/splash-icon.png",
+      "image": "./assets/logoBolder.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,12 +17,19 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logoBolder.png",
         "backgroundColor": "#ffffff"
-      }
+      },
+      "package": "com.tamaki404.newBolder"
     },
     "web": {
       "favicon": "./assets/favicon.png"
-    }
+    },
+    "extra": {
+      "eas": {
+        "projectId": "847fb089-89ef-4ecd-a652-8e9cb343b977"
+      }
+    },
+    "owner": "tamaki404"
   }
 }
