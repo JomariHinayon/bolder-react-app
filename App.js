@@ -18,9 +18,10 @@ const Chatbot = () => {
   const [selectedChat, setSelectedChat] = useState(null);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
   const [isTyping, setIsTyping] = useState(false);
-  const [olderMessages, setOlderMessages] = useState([]);
-  const [showOlderMessages, setShowOlderMessages] = useState(false);
+  const [olderMessages, setOlderMessages] = useState([]); // Holds older messages
+  const [showOlderMessages, setShowOlderMessages] = useState(false); // Controls visibility of older messages button
   const [cacheSize, setCacheSize] = useState(0);
+  const [showLoadMore, setShowLoadMore] = useState(false); // Control load more button visibility
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
   const sideMenuAnim = useState(new Animated.Value(-sideMenuWidth))[0];
   const deleteButtonRef = useRef(null);
@@ -52,18 +53,30 @@ const Chatbot = () => {
       console.error("Error saving chat history:", error);
     }
   };
-  
+
   const loadChatHistory = async (title) => {
     try {
       const storedMessages = await AsyncStorage.getItem(`chatHistory_${title}`);
       if (storedMessages) {
         const parsedMessages = JSON.parse(storedMessages);
-        setMessages(parsedMessages.slice(-10)); // Load only the last 10 messages initially
-        setOlderMessages(parsedMessages.slice(0, -10)); // Store older messages separately
+        setMessages(parsedMessages.slice(-10));
+        setOlderMessages(parsedMessages.slice(0, -10));
+        setShowLoadMore(parsedMessages.length > 10);
         setChatTitle(title);
       }
     } catch (error) {
       console.error("Error loading chat history:", error);
+    }
+  };
+
+  const loadMoreMessages = () => {
+    if (olderMessages.length > 0) {
+      const nextBatch = olderMessages.slice(-10);
+      const remainingOlder = olderMessages.slice(0, -10);
+
+      setMessages(prevMessages => [...nextBatch, ...prevMessages]);
+      setOlderMessages(remainingOlder);
+      setShowLoadMore(remainingOlder.length > 0);
     }
   };
 
@@ -242,13 +255,6 @@ const Chatbot = () => {
     }
   };
 
-  const loadOlderMessages = () => {
-    const olderMessagesToShow = olderMessages.slice(-10);
-    setMessages([...olderMessagesToShow, ...messages]);
-    setOlderMessages(olderMessages.slice(0, -10));
-    setShowOlderMessages(olderMessages.length > 10);
-  };
-
   const calculateCacheSize = async () => {
     try {
       const keys = await AsyncStorage.getAllKeys();
@@ -287,15 +293,17 @@ const Chatbot = () => {
           <Text style={styles.chatTitle}>{chatTitle} </Text>
           <Button title="Clear" onPress={clearConversation} />
         </View>
-
         <ScrollView
           style={styles.chatBox}
           contentContainerStyle={{ paddingBottom: 20 }}
           ref={scrollViewRef}
         >
-          {showOlderMessages && (
-            <TouchableOpacity onPress={loadOlderMessages}>
-              <Text style={styles.loadOlderMessages}>See older messages</Text>
+          {showLoadMore && (
+            <TouchableOpacity
+              style={styles.loadMoreButton}
+              onPress={loadMoreMessages}
+            >
+              <Text style={styles.loadMoreText}>Load Previous Messages</Text>
             </TouchableOpacity>
           )}
           {messages.map((msg, index) => (
@@ -309,7 +317,6 @@ const Chatbot = () => {
             </View>
           )}
         </ScrollView>
-
         <View style={styles.inputContainer}>
           <TextInput
             style={styles.input}
@@ -322,7 +329,6 @@ const Chatbot = () => {
             <Button style={styles.roundButton} onPress={sendMessage} title="Send" />
           </View>
         </View>
-
         {/* Side Menu */}
         {isSideMenuVisible && (
           <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
@@ -349,14 +355,12 @@ const Chatbot = () => {
               contentContainerStyle={{ padding: 20 }}
               style={{ maxHeight: '80%' }}
             />
-            
-              <Button title={`Clear cache (${cacheSize} bytes)`} onPress={async () => {
-                const size = await calculateCacheSize();
-                alert(`Cache size: ${size} bytes`);
-                clearCache();
-              }} />
-              <Button title={`Settings`}/>
-            </Animated.View>
+            <Button title={`Clear cache (${cacheSize} bytes)`} onPress={async () => {
+              const size = await calculateCacheSize();
+              alert(`Cache size: ${size} bytes`);
+              clearCache();
+            }} />
+          </Animated.View>
         )}
       </View>
     </TouchableWithoutFeedback>
@@ -366,7 +370,7 @@ const Chatbot = () => {
 export default Chatbot;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: '#f5f5f5', overflow: 'hidden'},
+  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: '#f5f5f5', overflow: 'hidden' },
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
   userMessage: { alignSelf: 'flex-end', backgroundColor: '#e9e8e9', fontWeight: 'bold' },
@@ -376,12 +380,22 @@ const styles = StyleSheet.create({
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: '#02843e', paddingHorizontal: 10 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute'  , justifyContent:'center', width: '75%', backgroundColor: 'white' ,padding: 20, marginTop:'12%', zIndex: 1000,  height: '100%'},
+  sideMenu: { position: 'absolute', justifyContent: 'center', width: '75%', backgroundColor: 'white', padding: 20, marginTop: '12%', zIndex: 1000, height: '100%' },
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
-  loadOlderMessages: { color: 'blue', textAlign: 'center', marginVertical: 10 },
+  loadMoreButton: {
+    backgroundColor: '#e0e0e0',
+    padding: 10,
+    borderRadius: 5,
+    marginVertical: 10,
+    alignItems: 'center',
+  },
+  loadMoreText: {
+    color: '#02843e',
+    fontWeight: 'bold',
+  },
   highlightChatItem: {
     backgroundColor: '#f5f5f5',
     fontWeight: 'bold',
