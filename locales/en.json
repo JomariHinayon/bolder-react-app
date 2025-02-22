@@ -1,0 +1,15 @@
+{
+    "welcome": "Hello! How can I help you today?",
+    "chatTitle": "AI Conversation",
+    "newConversation": "New Conversation",
+    "sideMenu": "Side Menu",
+    "close": "Close",
+    "chatHistory": "Chat History",
+    "selectLanguage": "Select Language",
+    "deleteAllChats": "Delete All Chats",
+    "clearConversation": "Clear Conversation",
+    "send": "Send",
+    "chatInputPlaceholder": "Chat input",
+    "aiTyping": "AI is typing...",
+    "loadPreviousMessages": "Load Previous Messages"
+  }

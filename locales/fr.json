@@ -1,0 +1,15 @@
+{
+    "welcome": "Bonjour ! Comment puis-je vous aider aujourd'hui ?",
+    "chatTitle": "Conversation avec l'IA",
+    "newConversation": "Nouvelle Conversation",
+    "sideMenu": "Menu Latéral",
+    "close": "Fermer",
+    "chatHistory": "Historique des Chats",
+    "selectLanguage": "Sélectionner la Langue",
+    "deleteAllChats": "Supprimer Tous les Chats",
+    "clearConversation": "Effacer la Conversation",
+    "send": "Envoyer",
+    "chatInputPlaceholder": "Entrez votre message",
+    "aiTyping": "L'IA est en train d'écrire...",
+    "loadPreviousMessages": "Charger les Messages Précédents"
+  }

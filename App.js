@@ -18,16 +18,20 @@ import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vec
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from '@env';
+import { useTranslation, I18nextProvider } from 'react-i18next'; // Import I18nextProvider
+import i18n from './i18n'; // Import your i18n configuration
 
-const Chatbot = () => {
+const ChatbotComponent = () => {
+  const { t, i18n } = useTranslation(); // Use the translation hook
+
   // State variables
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: 'Hello! How can I help you today?' },
+    { role: 'assistant', content: t('welcome') }, // Use localized welcome message
   ]);
   const [userInput, setUserInput] = useState('');
-  const [chatTitle, setChatTitle] = useState('AI Conversation');
+  const [chatTitle, setChatTitle] = useState(t('chatTitle')); // Use localized chat title
   const [isSideMenuVisible, setIsSideMenuVisible] = useState(false);
-  const [sideMenuButtonText, setSideMenuButtonText] = useState('Side Menu');
+  const [sideMenuButtonText, setSideMenuButtonText] = useState(t('sideMenu')); // Use localized side menu text
   const [pastChats, setPastChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
@@ -46,16 +50,17 @@ const Chatbot = () => {
 
   // List of supported languages
   const languages = [
-    { code: 'en', name: 'English' },
-    { code: 'es', name: 'Spanish' },
-    { code: 'fr', name: 'French' },
-    { code: 'de', name: 'German' },
-    { code: 'zh', name: 'Chinese' },
+    { code: 'en', name: t('english') }, // Use localized language names
+    { code: 'es', name: t('spanish') },
+    { code: 'fr', name: t('french') },
+    { code: 'de', name: t('german') },
+    { code: 'zh', name: t('chinese') },
   ];
 
-  // Load past chats on component mount
+  // Load past chats and language preference on component mount
   useEffect(() => {
     loadPastChats();
+    loadLanguage();
   }, []);
 
   // Scroll to the end of the chat when messages update
@@ -74,16 +79,29 @@ const Chatbot = () => {
     fetchCacheSize();
   }, []);
 
+
+ 
+  // Load saved language preference
+  const loadLanguage = async () => {
+    const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
+    if (savedLanguage) {
+      i18n.changeLanguage(savedLanguage); // Change the app's language
+      setSelectedLanguage(savedLanguage);
+    }
+  };
+
+
+
+
   // Save chat history to AsyncStorage
   const saveChatHistory = async (chatHistory, title) => {
     try {
       await AsyncStorage.setItem(`chatHistory_${title}`, JSON.stringify(chatHistory));
-      await savePastChat(title);
+      await savePastChat(title); // Save the title to past chats
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
   };
-
   // Load chat history from AsyncStorage
   const loadChatHistory = async (title) => {
     try {
@@ -127,6 +145,7 @@ const Chatbot = () => {
     }
   };
 
+  
   // Load past chats from AsyncStorage
   const loadPastChats = async () => {
     try {
@@ -142,18 +161,47 @@ const Chatbot = () => {
     }
   };
 
-  // Generate a chat title using OpenAI API
-  const generateChatTitle = async (firstMessage) => {
+const generateChatTitle = async (firstMessage) => {
+  try {
+    const res = await axios.post(
+      'https://api.openai.com/v1/chat/completions', // Fixed typo in the URL
+      {
+        model: 'gpt-3.5-turbo',
+        messages: [
+          { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
+          { role: 'user', content: firstMessage },
+        ],
+        max_tokens: 10,
+      },
+      {
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${REACT_APP_OPENAI_API_KEY}`,
+        },
+      }
+    );
+
+    const generatedTitle = res.data.choices[0].message.content.trim();
+    return generatedTitle || t('chatTitle'); // Use localized fallback title
+  } catch (error) {
+    console.error('Error generating chat title:', error.response?.data || error.message); // Log full error details
+    return t('chatTitle'); // Use localized fallback title
+  }
+};
+  // Translate text using OpenAI GPT
+  const translateText = async (text, targetLanguage) => {
     try {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
           model: 'gpt-3.5-turbo',
           messages: [
-            { role: 'system', content: 'Generate a short, relevant, and interesting chat title based on this message.' },
-            { role: 'user', content: firstMessage },
+            {
+              role: 'system',
+              content: t('translatePrompt', { language: targetLanguage }), // Use localized prompt
+            },
+            { role: 'user', content: text },
           ],
-          max_tokens: 10,
         },
         {
           headers: {
@@ -163,29 +211,23 @@ const Chatbot = () => {
         }
       );
 
-      const generatedTitle = res.data.choices[0].message.content.trim();
-      return generatedTitle || 'AI Conversation';
+      return res.data.choices[0].message.content.trim();
     } catch (error) {
-      console.error('Error generating chat title:', error);
-      return 'AI Conversation';
+      console.error('Error translating text:', error);
+      return text; // Return the original text if translation fails
     }
   };
 
-  // Send a message to the chatbot
   const sendMessage = async () => {
-    if (!userInput.trim()) return;
-
+    if (!userInput.trim()) return; // Don't send empty messages
+  
+    // Add user message to the messages array
     const newMessages = [...messages, { role: 'user', content: userInput }];
     setMessages(newMessages);
-    setUserInput('');
-
-    if (messages.length === 1) {
-      const generatedTitle = await generateChatTitle(userInput);
-      setChatTitle(generatedTitle);
-    }
-
+    setUserInput(''); // Clear the input field
+  
+    // Generate AI response
     setIsTyping(true);
-
     try {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions',
@@ -200,21 +242,29 @@ const Chatbot = () => {
           },
         }
       );
-
+  
+      // Add AI response to the messages array
       const botReply = res.data.choices[0].message.content;
       const updatedMessages = [...newMessages, { role: 'assistant', content: botReply }];
       setMessages(updatedMessages);
-
+  
+      // Generate chat title if it's the first user message
+      if (messages.length === 1) {
+        const generatedTitle = await generateChatTitle(userInput);
+        setChatTitle(generatedTitle);
+      }
+  
       await saveChatHistory(updatedMessages, chatTitle);
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
-      const errorMessages = [...newMessages, { role: 'assistant', content: 'Oops! Something went wrong.' }];
+      const errorMessages = [...newMessages, { role: 'assistant', content: t('errorMessage') }];
       setMessages(errorMessages);
       await saveChatHistory(errorMessages, chatTitle);
     } finally {
       setIsTyping(false);
     }
   };
+  
 
   // Toggle side menu visibility
   const toggleSideMenu = () => {
@@ -228,7 +278,7 @@ const Chatbot = () => {
   // Open side menu with animation
   const openSideMenu = () => {
     setIsSideMenuVisible(true);
-    setSideMenuButtonText('Close');
+    setSideMenuButtonText(t('close')); // Use localized close text
     Animated.timing(sideMenuAnim, {
       toValue: 0,
       duration: 300,
@@ -244,7 +294,7 @@ const Chatbot = () => {
       useNativeDriver: true,
     }).start(() => {
       setIsSideMenuVisible(false);
-      setSideMenuButtonText('Side Menu');
+      setSideMenuButtonText(t('sideMenu')); // Use localized side menu text
     });
   };
 
@@ -253,8 +303,8 @@ const Chatbot = () => {
     if (messages.length > 1) {
       await saveChatHistory(messages, chatTitle);
     }
-    setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]);
-    setChatTitle('New Conversation');
+    setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
+    setChatTitle(t('newConversation')); // Use localized new conversation text
     closeSideMenu();
   };
 
@@ -280,8 +330,8 @@ const Chatbot = () => {
       await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
       setPastChats(updatedPastChats);
       if (chatTitle === title) {
-        setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]);
-        setChatTitle('AI Conversation');
+        setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
+        setChatTitle(t('chatTitle')); // Use localized chat title
       }
     } catch (error) {
       console.error('Error deleting chat:', error);
@@ -295,8 +345,8 @@ const Chatbot = () => {
       const updatedPastChats = pastChats.filter((chat) => chat !== chatTitle);
       await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
       setPastChats(updatedPastChats);
-      setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]);
-      setChatTitle('AI Conversation');
+      setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
+      setChatTitle(t('chatTitle')); // Use localized chat title
     } catch (error) {
       console.error('Error clearing conversation:', error);
     }
@@ -321,15 +371,15 @@ const Chatbot = () => {
   // Delete all chats
   const deleteAllChats = async () => {
     Alert.alert(
-      'Delete All Chats',
-      'Are you sure you want to delete all chats? This action cannot be undone.',
+      t('deleteAllChatsTitle'), // Use localized delete all chats title
+      t('deleteAllChatsMessage'), // Use localized delete all chats message
       [
         {
-          text: 'Cancel',
+          text: t('cancel'), // Use localized cancel text
           style: 'cancel',
         },
         {
-          text: 'Delete',
+          text: t('delete'), // Use localized delete text
           style: 'destructive',
           onPress: async () => {
             try {
@@ -338,9 +388,9 @@ const Chatbot = () => {
               await AsyncStorage.multiRemove(chatKeys);
               await AsyncStorage.removeItem('pastChats');
               setPastChats([]);
-              setMessages([{ role: 'assistant', content: 'Hello! How can I help you today?' }]);
-              setChatTitle('AI Conversation');
-              alert('All chats deleted successfully!');
+              setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
+              setChatTitle(t('chatTitle')); // Use localized chat title
+              alert(t('deleteAllChatsSuccess')); // Use localized success message
             } catch (error) {
               console.error('Error deleting all chats:', error);
             }
@@ -362,8 +412,26 @@ const Chatbot = () => {
   };
 
   // Handle language selection
-  const handleLanguageSelect = (languageCode) => {
+  const handleLanguageSelect = async (languageCode) => {
+    // Update the selected language
+    i18n.changeLanguage(languageCode); // Change the app's language
     setSelectedLanguage(languageCode);
+
+    // Translate all messages in the chat history
+    const translatedMessages = await Promise.all(
+      messages.map(async (msg) => {
+        const translatedContent = await translateText(msg.content, languageCode);
+        return { ...msg, content: translatedContent };
+      })
+    );
+
+    // Update the chat history with translated messages
+    setMessages(translatedMessages);
+
+    // Save the selected language to AsyncStorage
+    await AsyncStorage.setItem('selectedLanguage', languageCode);
+
+    // Close the language selection modal
     closeLanguageModal();
   };
 
@@ -381,7 +449,7 @@ const Chatbot = () => {
         <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
           <Button title={sideMenuButtonText} onPress={toggleSideMenu} />
           <Text style={styles.chatTitle}>{chatTitle} </Text>
-          <Button title="Clear" onPress={clearConversation} />
+          <Button title={t('clear')} onPress={clearConversation} /> {/* Use localized clear text */}
         </View>
         <ScrollView
           style={styles.chatBox}
@@ -390,7 +458,7 @@ const Chatbot = () => {
         >
           {showLoadMore && (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={styles.loadMoreText}>Load Previous Messages</Text>
+              <Text style={styles.loadMoreText}>{t('Load older messages')}</Text> {/* Use localized load more text */}
             </TouchableOpacity>
           )}
           {messages.map((msg, index) => (
@@ -403,7 +471,7 @@ const Chatbot = () => {
           ))}
           {isTyping && (
             <View style={styles.typingIndicator}>
-              <Text style={{ color: 'gray' }}>AI is typing...</Text>
+              <Text style={{ color: 'gray' }}>{t('Typing...')}</Text> {/* Use localized typing text */}
             </View>
           )}
         </ScrollView>
@@ -412,19 +480,19 @@ const Chatbot = () => {
             style={styles.input}
             value={userInput}
             onChangeText={setUserInput}
-            placeholder="Chat input"
+            placeholder={t('Type here ...')} // Use localized placeholder text
             placeholderTextColor="white"
           />
           <View style={styles.roundButtonContainer}>
-            <Button style={styles.roundButton} onPress={sendMessage} title="Send" />
+            <Button style={styles.roundButton} onPress={sendMessage} title={t('send')} /> {/* Use localized send text */}
           </View>
         </View>
         {/* Side Menu */}
         {isSideMenuVisible && (
           <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
             <Button title="+" onPress={newChat} />
-            <Button title="Close" onPress={closeSideMenu} />
-            <Text style={styles.pastChatsTitle}>Chat history</Text>
+            <Button title={t('close')} onPress={closeSideMenu} /> {/* Use localized close text */}
+            <Text style={styles.pastChatsTitle}>{t('Chat history')}</Text> {/* Use localized chat history text */}
             <FlatList
               data={pastChats}
               keyExtractor={(item) => item}
@@ -435,7 +503,7 @@ const Chatbot = () => {
                 >
                   {selectedChat === item && deleteButtonVisible ? (
                     <View ref={deleteButtonRef} style={styles.deleteButtonContainer}>
-                      <Button title="Delete" onPress={() => deleteChat(item)} color="red" />
+                      <Button title={t('delete')} onPress={() => deleteChat(item)} color="red" /> {/* Use localized delete text */}
                     </View>
                   ) : (
                     <Text style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}>{item}</Text>
@@ -445,8 +513,8 @@ const Chatbot = () => {
               contentContainerStyle={{ padding: 20 }}
               style={{ maxHeight: '80%' }}
             />
-            <Button title="Select Language" onPress={openLanguageModal} color="green" />
-            <Button title="Delete All Chats" onPress={deleteAllChats} color="red" />
+            <Button title={t('Select language')} onPress={openLanguageModal} color="green" /> {/* Use localized select language text */}
+            <Button title={t('Delete all chats')} onPress={deleteAllChats} color="red" /> {/* Use localized delete all chats text */}
           </Animated.View>
         )}
         {/* Language Selection Modal */}
@@ -458,7 +526,7 @@ const Chatbot = () => {
         >
           <View style={styles.modalContainer}>
             <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>Select Language</Text>
+              <Text style={styles.modalTitle}>{t('Select language')}</Text> {/* Use localized select language text */}
               {languages.map((language) => (
                 <TouchableOpacity
                   key={language.code}
@@ -468,12 +536,21 @@ const Chatbot = () => {
                   <Text style={styles.languageText}>{language.name}</Text>
                 </TouchableOpacity>
               ))}
-              <Button title="Close" onPress={closeLanguageModal} />
+              <Button title={t('close')} onPress={closeLanguageModal} /> {/* Use localized close text */}
             </View>
           </View>
         </Modal>
       </View>
     </TouchableWithoutFeedback>
+  );
+};
+
+// Wrap the ChatbotComponent with I18nextProvider
+const Chatbot = () => {
+  return (
+    <I18nextProvider i18n={i18n}>
+      <ChatbotComponent />
+    </I18nextProvider>
   );
 };
 
@@ -533,6 +610,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
+  
   languageText: {
     fontSize: 16,
   },
