@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Button, StyleSheet, Modal, TouchableOpacity, Text, Alert } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Ionicons } from '@expo/vector-icons';
 
 const SettingsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -16,6 +17,17 @@ const SettingsScreen = ({ navigation }) => {
     { code: 'zh', name: t('chinese') },
   ];
 
+  useEffect(() => {
+    navigation.setOptions({
+      handleLanguageSelect: async (languageCode) => {
+        i18n.changeLanguage(languageCode);
+        setSelectedLanguage(languageCode);
+        await AsyncStorage.setItem('selectedLanguage', languageCode);
+        navigation.navigate('Chatbot'); // Navigate back to Chatbot to apply changes
+      },
+    });
+  }, [navigation, i18n]);
+
   const openLanguageModal = () => {
     setIsLanguageModalVisible(true);
   };
@@ -24,12 +36,9 @@ const SettingsScreen = ({ navigation }) => {
     setIsLanguageModalVisible(false);
   };
 
-  const handleLanguageSelect = async (languageCode) => {
-    i18n.changeLanguage(languageCode);
-    setSelectedLanguage(languageCode);
-    await AsyncStorage.setItem('selectedLanguage', languageCode);
+  const handleLanguageSelect = (languageCode) => {
+    navigation.getParam('handleLanguageSelect')(languageCode);
     closeLanguageModal();
-    navigation.navigate('Chatbot'); // Navigate back to Chatbot to apply changes
   };
 
   const deleteAllChats = async () => {
@@ -64,8 +73,22 @@ const SettingsScreen = ({ navigation }) => {
 
   return (
     <View style={styles.container}>
-      <Button title={t('Select language')} onPress={openLanguageModal} color="green" />
-      <Button title={t('Delete all chats')} onPress={deleteAllChats} color="red" />
+      
+      <TouchableOpacity onPress={openLanguageModal} style={styles.languageCon}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+            <Ionicons size={25} color="black" name="language-sharp" />
+            <Text style={styles.languageText}>Language</Text>
+          </View>
+          <Ionicons size={25} name="chevron-down-sharp" />
+      </TouchableOpacity>
+
+
+      <View style={styles.deleteAllCon}>
+        <Button title={t('Delete all chats')} onPress={deleteAllChats}  />
+      </View>
+      <View style={styles.aboutCon}>
+        <Button title={t('Delete all chats')} onPress={deleteAllChats} />
+      </View>
 
       <Modal visible={isLanguageModalVisible} transparent={true} animationType="slide" onRequestClose={closeLanguageModal}>
         <View style={styles.modalContainer}>
@@ -88,9 +111,9 @@ export default SettingsScreen;
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
+    padding: 15,
+    justifyContent: 'start',
+    alignItems: 'start',
     backgroundColor: '#f5f5f5',
   },
   modalContainer: {
@@ -111,12 +134,18 @@ const styles = StyleSheet.create({
     marginBottom: 10,
     textAlign: 'center',
   },
-  languageItem: {
+  languageCon: {
+    flexDirection: 'row',
+    justifyContent: 'space-between', // Space out left and right items
+    alignItems: 'center',
     padding: 10,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
+  
   languageText: {
+    marginLeft: 10,
     fontSize: 16,
   },
+  
 });

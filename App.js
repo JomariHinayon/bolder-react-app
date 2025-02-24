@@ -474,11 +474,14 @@ const ChatbotComponent = ({ navigation }) => {
           contentContainerStyle={{ paddingBottom: 20 }}
           ref={scrollViewRef}
         >
+
+          {/* load more */}
           {showLoadMore && (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={styles.loadMoreText}>{t('Load older messages')}</Text> 
+              <Text style={styles.loadMoreText}>{t('See more messages')}</Text> 
             </TouchableOpacity>
           )}
+
           {messages.map((msg, index) => (
          <View
             key={index}
@@ -508,7 +511,15 @@ const ChatbotComponent = ({ navigation }) => {
         {/* typing section */}
         <View style={styles.inputContainer}>
            <View style={styles.typeCon}>
-
+            <TextInput
+              style={styles.input}
+            value={userInput}
+            onChangeText={setUserInput}
+            placeholder={t('Write a message ...')} 
+            placeholderTextColor="white"/>
+            <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')}>
+              <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
+            </TouchableOpacity>
           {/* <TextInput
             style={styles.input}
             value={userInput}
@@ -710,10 +721,6 @@ const styles = StyleSheet.create({
   chatItemContainer: {
     borderRadius: 10,
     backgroundColor: 'transparent',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 3,
     width: '100%',
     overflow: 'visible', 
   },
@@ -764,26 +771,23 @@ const styles = StyleSheet.create({
     right: 0,           
     backgroundColor: 'white',
     padding: 5,            
-    backgroundColorOpacity: 0.1,
     // iOS shadow
-    shadowColor: 'white',
-    shadowOffset: { width: 50, height: 2 },
-    shadowOpacity: 0.9,
-    shadowRadius: 10,
-    elevation: 5,
+  
     zIndex: 10,            
   },
   
   
   floatingMenu: {
     position: 'absolute',
-    top: 0, // Adjust based on design
+    width: 100,
+    top: 0, 
     right: 0,
     backgroundColor: '#fff',
-    borderRadius: 8,
-    elevation: 50, // Higher elevation for Android
-    zIndex: 9999,  // Highest possible z-index
-    overflow: 'visible', // Ensure floating elements can go outside
+    borderRadius: 5,
+    elevation: 50, 
+    zIndex: 9999, 
+    overflow: 'visible', 
+    shadow: 'none'
 
   },
   
@@ -793,8 +797,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#e0e0e0',
     height:'50%',
-    overflow: 'visible', // Ensure floating elements can go outside
-    
+    overflow: 'visible', 
+    shadow: 'none'
+
     
   },
   deleteText: {
@@ -809,9 +814,9 @@ const styles = StyleSheet.create({
   userMessage: { alignSelf: 'flex-end', backgroundColor: '#03a1e7'},
   botMessage: { alignSelf: 'flex-start', backgroundColor: '#f3f3f2'},
   inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
-  typeCon: { backgroundColor: '#03a1e7', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,},
-  input: { flex: 1, marginRight: '2%', backgroundColor: '#02843e', color: 'white', borderRadius: 10, padding: 10 },
-  roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
+  typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,},
+  input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
+  roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
   mainLogo: { fontSize: 20, fontWeight: 'bold', color: 'black', textAlign: 'center', flex: 1 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
@@ -821,14 +826,14 @@ const styles = StyleSheet.create({
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
   loadMoreButton: {
-    backgroundColor: '#e0e0e0',
+    backgroundColor: '',
     padding: 10,
     borderRadius: 5,
     marginVertical: 10,
     alignItems: 'center',
   },
   loadMoreText: {
-    color: '#02843e',
+    color: '#03a1e7',
     fontWeight: 'bold',
   },
   highlightChatItem: {
@@ -872,8 +877,8 @@ const styles = StyleSheet.create({
     color: 'gray',
   },
   dot: {
-    fontSize: 40,
-    color: 'gray',
-    marginLeft: 2,
+    fontSize: 50,
+    color: '#cdcdcc',
+    marginLeft: 1,
   },
 });
