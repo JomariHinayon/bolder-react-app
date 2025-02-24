@@ -20,8 +20,13 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from '@env';
 import { useTranslation, I18nextProvider } from 'react-i18next'; // Import I18nextProvider
 import i18n from './i18n'; // Import your i18n configuration
+import { NavigationContainer } from '@react-navigation/native';
+import SettingsScreen from './SettingsScreen'; // Import the settings screen
+import { createStackNavigator } from '@react-navigation/stack';
 
-const ChatbotComponent = () => {
+const Stack = createStackNavigator();
+
+const ChatbotComponent = ({ navigation }) => {
   const { t, i18n } = useTranslation(); // Use the translation hook
 
   // State variables
@@ -79,8 +84,6 @@ const ChatbotComponent = () => {
     fetchCacheSize();
   }, []);
 
-
- 
   // Load saved language preference
   const loadLanguage = async () => {
     const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
@@ -89,9 +92,6 @@ const ChatbotComponent = () => {
       setSelectedLanguage(savedLanguage);
     }
   };
-
-
-
 
   // Save chat history to AsyncStorage
   const saveChatHistory = async (chatHistory, title) => {
@@ -102,6 +102,7 @@ const ChatbotComponent = () => {
       console.error('Error saving chat history:', error);
     }
   };
+
   // Load chat history from AsyncStorage
   const loadChatHistory = async (title) => {
     try {
@@ -145,7 +146,6 @@ const ChatbotComponent = () => {
     }
   };
 
-  
   // Load past chats from AsyncStorage
   const loadPastChats = async () => {
     try {
@@ -161,33 +161,34 @@ const ChatbotComponent = () => {
     }
   };
 
-const generateChatTitle = async (firstMessage) => {
-  try {
-    const res = await axios.post(
-      'https://api.openai.com/v1/chat/completions', // Fixed typo in the URL
-      {
-        model: 'gpt-3.5-turbo',
-        messages: [
-          { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
-          { role: 'user', content: firstMessage },
-        ],
-        max_tokens: 10,
-      },
-      {
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${REACT_APP_OPENAI_API_KEY}`,
+  const generateChatTitle = async (firstMessage) => {
+    try {
+      const res = await axios.post(
+        'https://api.openai.com/v1/chat/completions', // Fixed typo in the URL
+        {
+          model: 'gpt-3.5-turbo',
+          messages: [
+            { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
+            { role: 'user', content: firstMessage },
+          ],
+          max_tokens: 10,
         },
-      }
-    );
+        {
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${REACT_APP_OPENAI_API_KEY}`,
+          },
+        }
+      );
 
-    const generatedTitle = res.data.choices[0].message.content.trim();
-    return generatedTitle || t('chatTitle'); // Use localized fallback title
-  } catch (error) {
-    console.error('Error generating chat title:', error.response?.data || error.message); // Log full error details
-    return t('chatTitle'); // Use localized fallback title
-  }
-};
+      const generatedTitle = res.data.choices[0].message.content.trim();
+      return generatedTitle || t('chatTitle'); // Use localized fallback title
+    } catch (error) {
+      console.error('Error generating chat title:', error.response?.data || error.message); // Log full error details
+      return t('chatTitle'); // Use localized fallback title
+    }
+  };
+
   // Translate text using OpenAI GPT
   const translateText = async (text, targetLanguage) => {
     try {
@@ -220,12 +221,12 @@ const generateChatTitle = async (firstMessage) => {
 
   const sendMessage = async () => {
     if (!userInput.trim()) return; // Don't send empty messages
-  
+
     // Add user message to the messages array
     const newMessages = [...messages, { role: 'user', content: userInput }];
     setMessages(newMessages);
     setUserInput(''); // Clear the input field
-  
+
     // Generate AI response
     setIsTyping(true);
     try {
@@ -242,18 +243,18 @@ const generateChatTitle = async (firstMessage) => {
           },
         }
       );
-  
+
       // Add AI response to the messages array
       const botReply = res.data.choices[0].message.content;
       const updatedMessages = [...newMessages, { role: 'assistant', content: botReply }];
       setMessages(updatedMessages);
-  
+
       // Generate chat title if it's the first user message
       if (messages.length === 1) {
         const generatedTitle = await generateChatTitle(userInput);
         setChatTitle(generatedTitle);
       }
-  
+
       await saveChatHistory(updatedMessages, chatTitle);
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
@@ -264,7 +265,6 @@ const generateChatTitle = async (firstMessage) => {
       setIsTyping(false);
     }
   };
-  
 
   // Toggle side menu visibility
   const toggleSideMenu = () => {
@@ -435,6 +435,16 @@ const generateChatTitle = async (firstMessage) => {
     closeLanguageModal();
   };
 
+  const toggleDeleteButton = (item) => {
+    if (selectedChat === item && deleteButtonVisible) {
+      setDeleteButtonVisible(false);
+      setSelectedChat(null);
+    } else {
+      setSelectedChat(item);
+      setDeleteButtonVisible(true);
+    }
+  };
+
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -447,9 +457,11 @@ const generateChatTitle = async (firstMessage) => {
       <View style={styles.container}>
         {/* Dynamic Chat Title */}
         <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
-          <Button title={sideMenuButtonText} onPress={toggleSideMenu} />
+          <TouchableOpacity onPress={toggleSideMenu}>
+            <Ionicons name="menu" size={30} color="white" />
+          </TouchableOpacity>
           <Text style={styles.chatTitle}>{chatTitle} </Text>
-          <Button title={t('clear')} onPress={clearConversation} /> {/* Use localized clear text */}
+
         </View>
         <ScrollView
           style={styles.chatBox}
@@ -490,31 +502,88 @@ const generateChatTitle = async (firstMessage) => {
         {/* Side Menu */}
         {isSideMenuVisible && (
           <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
-            <Button title="+" onPress={newChat} />
-            <Button title={t('close')} onPress={closeSideMenu} /> {/* Use localized close text */}
-            <Text style={styles.pastChatsTitle}>{t('Chat history')}</Text> {/* Use localized chat history text */}
-            <FlatList
-              data={pastChats}
-              keyExtractor={(item) => item}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  onPress={() => loadChat(item)}
-                  onLongPress={() => handleLongPress(item)}
-                >
-                  {selectedChat === item && deleteButtonVisible ? (
-                    <View ref={deleteButtonRef} style={styles.deleteButtonContainer}>
-                      <Button title={t('delete')} onPress={() => deleteChat(item)} color="red" /> {/* Use localized delete text */}
-                    </View>
-                  ) : (
-                    <Text style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}>{item}</Text>
-                  )}
-                </TouchableOpacity>
-              )}
-              contentContainerStyle={{ padding: 20 }}
-              style={{ maxHeight: '80%' }}
-            />
-            <Button title={t('Select language')} onPress={openLanguageModal} color="green" /> {/* Use localized select language text */}
-            <Button title={t('Delete all chats')} onPress={deleteAllChats} color="red" /> {/* Use localized delete all chats text */}
+             <View style={styles.firstColumn}>
+             <Text style={styles.titleLogo}>AI Bolder</Text>
+            <TouchableOpacity onPress={closeSideMenu}>
+          <Ionicons name="close-outline" size={30} color="black" />
+        </TouchableOpacity>
+      </View>
+
+      {/* Second Column: + New Chat Button */}
+      <View style={styles.secondColumn}>
+        <TouchableOpacity onPress={newChat} style={styles.fullButton}>
+          <Ionicons name="add" size={20} color="#41b7ec" />
+          <Text style={styles.newChatText}>{t('New chat')}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* Third Column: Ads Box */}
+
+      <View style={styles.adsBox}>
+        <Text style={styles.adsText}>{t('Available Credits: 10')}</Text>
+      </View>
+
+
+      <View style={styles.chatHistory}>
+         <Ionicons name="chatbox-ellipses-outline" size={20}></Ionicons>
+         <Text style={styles.chatHistoryTitle}>{t('Chat history')}</Text>
+      </View>
+    
+      <FlatList
+  data={pastChats}
+  keyExtractor={(item) => item}
+  renderItem={({ item }) => (
+    <TouchableOpacity
+      onPress={() => loadChat(item)}
+      onLongPress={() => handleLongPress(item)}
+      style={styles.chatItemContainer}
+    >
+      <View style={styles.chatContent}>
+        {/* Text and Icon in the same row */}
+        <View style={styles.row}>
+          <Text
+            style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item}
+          </Text>
+
+          <TouchableOpacity
+            onPress={() => toggleDeleteButton(item)}
+            style={styles.ellipsisIcon}
+          >
+            <Ionicons name="ellipsis-vertical-outline" size={20} color="#555" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Floating Delete & Clear Buttons */}
+        {selectedChat === item && deleteButtonVisible && (
+          <View style={styles.floatingMenu}>
+            <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
+              <Text style={styles.deleteText}>{t('delete')}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
+              <Text style={styles.clearText}>{t('clear')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+      </View>
+    </TouchableOpacity>
+  )}
+  contentContainerStyle={{ padding: 10 }}
+  style={{ maxHeight: '78%' }}
+/>
+
+
+        
+            
+            <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
+              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+                <Ionicons size={25} color="black" name="settings-outline"></Ionicons>
+                <Text style={{ marginLeft: 10 }}>Settings</Text>
+              </View>
+            </TouchableOpacity>
           </Animated.View>
         )}
         {/* Language Selection Modal */}
@@ -545,11 +614,16 @@ const generateChatTitle = async (firstMessage) => {
   );
 };
 
-// Wrap the ChatbotComponent with I18nextProvider
+// Wrap the ChatbotComponent with I18nextProvider and NavigationContainer
 const Chatbot = () => {
   return (
     <I18nextProvider i18n={i18n}>
-      <ChatbotComponent />
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Chatbot">
+          <Stack.Screen name="Chatbot" component={ChatbotComponent} options={{ headerShown: false }} />
+          <Stack.Screen name="Settings" component={SettingsScreen} />
+        </Stack.Navigator>
+      </NavigationContainer>
     </I18nextProvider>
   );
 };
@@ -559,6 +633,142 @@ export default Chatbot;
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: '#f5f5f5', overflow: 'hidden' },
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
+  firstColumn: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: '',
+    height: 55,
+  },
+  secondColumn: {
+    alignItems: 'center',
+    justifyContent: 'center', // Center content vertically
+    backgroundColor: '#f2fafe', // Background color
+    height: 45,
+    borderRadius: 10, // Border radius
+    borderWidth: 1, // Border width
+    borderColor: '#41b7ec', // Border color
+    paddingHorizontal: 10, // Optional: Add padding for better spacing
+    marginBottom: 10
+  },
+  fullButton: {
+    flexDirection: 'row', // Align icon and text horizontally
+    alignItems: 'center', // Center content vertically
+    justifyContent: 'start', // Center content horizontally
+    width: '100%', // Make the button fill the container
+    height: '100%', // Make the button fill the container
+  },
+  newChatText: {
+    marginLeft: 10, // Space between icon and text
+    fontSize: 14,
+    color: '#41b7ec', // Font color
+  },
+  adsBox: {
+    backgroundColor: '',
+    borderRadius: 5,
+    alignItems: 'end',
+    height: 30,
+    justifyContent: 'end'
+  },
+  adsText: {
+    fontSize: 13,
+    marginLeft: 10,
+    fontWeight: 'normal',
+  },
+  titleLogo:{
+   fontSize: 20,
+    fontWeight: 'bold',
+  },
+  chatHistoryTitle: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#333',
+    marginLeft:5
+  },
+
+  chatHistory: {
+      alignItems: 'center',
+      justifyContent: 'start', // Center content vertically
+      backgroundColor: '',
+      height: 45,
+      flexDirection: 'row',
+      backgroundColor: "#f3f3f2",
+      padding: 10,
+      borderRadius: 10,
+      overflow: 'visible', // Ensure floating elements can go outside
+
+  },
+  chatItemContainer: {
+    borderRadius: 10,
+    backgroundColor: 'transparent',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 3,
+
+    overflow: 'visible', // Ensure floating elements can go outside
+  },
+  
+  chatContent: {
+    flexDirection: 'column',
+    zIndex:0,
+    overflow: 'visible', // Ensure floating elements can go outside
+    
+  },
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    overflow: 'visible', // Ensure floating elements can go outside
+
+  },
+  pastChatItem: {
+    fontSize: 16,
+    color: '#333',
+    flex: 1,
+    elevation: 1,
+    overflow: 'visible', // Ensure floating elements can go outside
+
+  },
+  highlightChatItem: {
+    fontWeight: 'bold',
+    color: '#007AFF',
+  },
+  ellipsisIcon: {
+    paddingLeft: 10,
+    elevation: 1,  // Low elevation for Android
+    zIndex: 1,
+  },
+  floatingMenu: {
+    position: 'absolute',
+    top: 0, // Adjust based on design
+    right: 0,
+    backgroundColor: '#fff',
+    borderRadius: 8,
+    elevation: 50, // Higher elevation for Android
+    zIndex: 9999,  // Highest possible z-index
+    overflow: 'visible', // Ensure floating elements can go outside
+
+  },
+  
+  floatingButton: {
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: '#e0e0e0',
+    height:'50%',
+    overflow: 'visible', // Ensure floating elements can go outside
+    
+    
+  },
+  deleteText: {
+    color: 'red',
+    fontWeight: 'bold',
+  },
+  clearText: {
+    color: '#007AFF',
+    fontWeight: 'bold',
+  },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
   userMessage: { alignSelf: 'flex-end', backgroundColor: '#e9e8e9', fontWeight: 'bold' },
   botMessage: { alignSelf: 'flex-start', backgroundColor: '#abaaaa', fontWeight: 'bold' },
@@ -610,7 +820,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  
+
   languageText: {
     fontSize: 16,
   },
