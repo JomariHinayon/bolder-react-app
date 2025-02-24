@@ -23,6 +23,8 @@ import i18n from './i18n'; // Import your i18n configuration
 import { NavigationContainer } from '@react-navigation/native';
 import SettingsScreen from './SettingsScreen'; // Import the settings screen
 import { createStackNavigator } from '@react-navigation/stack';
+import { Image } from 'react-native';
+import * as Animatable from 'react-native-animatable';
 
 const Stack = createStackNavigator();
 
@@ -171,7 +173,7 @@ const ChatbotComponent = ({ navigation }) => {
             { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
             { role: 'user', content: firstMessage },
           ],
-          max_tokens: 10,
+          max_tokens: 20,
         },
         {
           headers: {
@@ -455,12 +457,16 @@ const ChatbotComponent = ({ navigation }) => {
       }}
     >
       <View style={styles.container}>
-        {/* Dynamic Chat Title */}
         <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
           <TouchableOpacity onPress={toggleSideMenu}>
-            <Ionicons name="menu" size={30} color="white" />
+            <Ionicons name="reorder-three-outline" size={40} color="black"></Ionicons>
           </TouchableOpacity>
-          <Text style={styles.chatTitle}>{chatTitle} </Text>
+          {/* <Text style={styles.chatTitle}>{chatTitle} </Text> */}
+          <Text style={styles.mainLogo}>AI Bolder</Text>
+          <TouchableOpacity style={styles.adBtn}>
+             <Image source={require('./assets/gift.png')} style={{ width: 40, height: 40 }} />
+           </TouchableOpacity>
+
 
         </View>
         <ScrollView
@@ -470,35 +476,52 @@ const ChatbotComponent = ({ navigation }) => {
         >
           {showLoadMore && (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={styles.loadMoreText}>{t('Load older messages')}</Text> {/* Use localized load more text */}
+              <Text style={styles.loadMoreText}>{t('Load older messages')}</Text> 
             </TouchableOpacity>
           )}
           {messages.map((msg, index) => (
-            <View
-              key={index}
-              style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}
-            >
-              <Text style={{ color: 'black' }}>{msg.content}</Text>
-            </View>
+         <View
+            key={index}
+            style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}
+          >
+            <Text style={{ color: msg.role === 'user' ? 'white' : 'black' }}>
+              {msg.content}
+            </Text>
+          </View>
+          
           ))}
           {isTyping && (
             <View style={styles.typingIndicator}>
-              <Text style={{ color: 'gray' }}>{t('Typing...')}</Text> {/* Use localized typing text */}
+              <Animatable.Text animation="pulse" iterationCount="infinite" duration={500} style={styles.dot}>
+                .
+              </Animatable.Text>
+              <Animatable.Text animation="pulse" iterationCount="infinite" delay={100} duration={500} style={styles.dot}>
+                .
+              </Animatable.Text>
+              <Animatable.Text animation="pulse" iterationCount="infinite" delay={200} duration={500} style={styles.dot}>
+                .
+              </Animatable.Text>
             </View>
           )}
         </ScrollView>
+
+        {/* typing section */}
         <View style={styles.inputContainer}>
-          <TextInput
+           <View style={styles.typeCon}>
+
+          {/* <TextInput
             style={styles.input}
             value={userInput}
             onChangeText={setUserInput}
-            placeholder={t('Type here ...')} // Use localized placeholder text
-            placeholderTextColor="white"
-          />
+            placeholder={t('Type here ...')} 
+            placeholderTextColor="white"/>
           <View style={styles.roundButtonContainer}>
-            <Button style={styles.roundButton} onPress={sendMessage} title={t('send')} /> {/* Use localized send text */}
-          </View>
+            <Button style={styles.roundButton} onPress={sendMessage} title={t('send')} /> 
+          </View> */}
+            </View>
+
         </View>
+        
         {/* Side Menu */}
         {isSideMenuVisible && (
           <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
@@ -530,85 +553,73 @@ const ChatbotComponent = ({ navigation }) => {
       </View>
     
       <FlatList
-  data={pastChats}
-  keyExtractor={(item) => item}
-  renderItem={({ item }) => (
-    <TouchableOpacity
-      onPress={() => loadChat(item)}
-      onLongPress={() => handleLongPress(item)}
-      style={styles.chatItemContainer}
-    >
-      <View style={styles.chatContent}>
-        {/* Text and Icon in the same row */}
-        <View style={styles.row}>
-          <Text
-            style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item}
-          </Text>
+          data={pastChats}
+          keyExtractor={(item) => item}
+          renderItem={({ item }) => (
+            <TouchableOpacity
+              onPress={() => loadChat(item)}
+              onLongPress={() => handleLongPress(item)}
+              style={styles.chatItemContainer}
+            >
+              <View style={styles.chatContent}>
+                <View style={styles.row}>
+                  {/* Text that can extend under the ellipsis */}
+                  <Text
+                    style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
+                    >
+                    {item}
+                  </Text>
+                  <View style={styles.ellipsisContainer}>
+                    <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
+                      <Ionicons name="ellipsis-vertical" size={20} color="#555" />
+                    </TouchableOpacity>
+                  </View>
+                </View>
 
-          <TouchableOpacity
-            onPress={() => toggleDeleteButton(item)}
-            style={styles.ellipsisIcon}
-          >
-            <Ionicons name="ellipsis-vertical-outline" size={20} color="#555" />
-          </TouchableOpacity>
-        </View>
 
-        {/* Floating Delete & Clear Buttons */}
-        {selectedChat === item && deleteButtonVisible && (
-          <View style={styles.floatingMenu}>
-            <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
-              <Text style={styles.deleteText}>{t('delete')}</Text>
+
+
+                {/* Floating Delete & Clear Buttons */}
+                {selectedChat === item && deleteButtonVisible && (
+                  <View style={styles.floatingMenu}>
+                    <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
+                      <Text style={styles.deleteText}>{t('delete')}</Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
+                      <Text style={styles.clearText}>{t('clear')}</Text>
+                    </TouchableOpacity>
+                  </View>
+                )}
+              </View>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
-              <Text style={styles.clearText}>{t('clear')}</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-      </View>
-    </TouchableOpacity>
-  )}
-  contentContainerStyle={{ padding: 10 }}
-  style={{ maxHeight: '78%' }}
-/>
+          )}
+          contentContainerStyle={{ padding: 5 }}
+          style={{ maxHeight: '78%' }}
+        />
 
 
         
-            
+           
+            {/* settings */}
             <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
-              <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                <Ionicons size={25} color="black" name="settings-outline"></Ionicons>
-                <Text style={{ marginLeft: 10 }}>Settings</Text>
+              <View style={{ 
+                flexDirection: 'row', 
+                alignItems: 'center', 
+                borderTopWidth: 2, 
+                borderColor: '#F2F2F2', 
+                padding: 10,
+                backgroundColor: 'black',
+                backgroundColorOpacity: 0.1,
+              }}>
+                <Ionicons size={25} color="white" name="settings-outline" />
+                <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>Settings</Text>
               </View>
             </TouchableOpacity>
+
+
           </Animated.View>
         )}
-        {/* Language Selection Modal */}
-        <Modal
-          visible={isLanguageModalVisible}
-          transparent={true}
-          animationType="slide"
-          onRequestClose={closeLanguageModal}
-        >
-          <View style={styles.modalContainer}>
-            <View style={styles.modalContent}>
-              <Text style={styles.modalTitle}>{t('Select language')}</Text> {/* Use localized select language text */}
-              {languages.map((language) => (
-                <TouchableOpacity
-                  key={language.code}
-                  style={styles.languageItem}
-                  onPress={() => handleLanguageSelect(language.code)}
-                >
-                  <Text style={styles.languageText}>{language.name}</Text>
-                </TouchableOpacity>
-              ))}
-              <Button title={t('close')} onPress={closeLanguageModal} /> {/* Use localized close text */}
-            </View>
-          </View>
-        </Modal>
+       
       </View>
     </TouchableWithoutFeedback>
   );
@@ -631,7 +642,7 @@ const Chatbot = () => {
 export default Chatbot;
 
 const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: '#f5f5f5', overflow: 'hidden' },
+  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: 'white', overflow: 'hidden' },
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
   firstColumn: {
     flexDirection: 'row',
@@ -688,14 +699,12 @@ const styles = StyleSheet.create({
 
   chatHistory: {
       alignItems: 'center',
-      justifyContent: 'start', // Center content vertically
-      backgroundColor: '',
-      height: 45,
+      justifyContent: 'start', 
       flexDirection: 'row',
       backgroundColor: "#f3f3f2",
       padding: 10,
       borderRadius: 10,
-      overflow: 'visible', // Ensure floating elements can go outside
+      overflow: 'visible',
 
   },
   chatItemContainer: {
@@ -705,40 +714,67 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.1,
     shadowRadius: 3,
-
-    overflow: 'visible', // Ensure floating elements can go outside
+    width: '100%',
+    overflow: 'visible', 
   },
   
   chatContent: {
-    flexDirection: 'column',
+    flexDirection: 'row',
     zIndex:0,
-    overflow: 'visible', // Ensure floating elements can go outside
-    
+    overflow: 'visible',
+    width: '100%',
+
   },
   row: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    overflow: 'visible', // Ensure floating elements can go outside
-
+    overflow: 'visible', 
+    backgroundColor: '',
+    borderBottomWidth: 1,
+    borderColor: '#f3f3f2',
+    width: '100%'
   },
   pastChatItem: {
     fontSize: 16,
     color: '#333',
     flex: 1,
     elevation: 1,
-    overflow: 'visible', // Ensure floating elements can go outside
+    overflow: 'visible',
 
   },
   highlightChatItem: {
     fontWeight: 'bold',
     color: '#007AFF',
   },
-  ellipsisIcon: {
-    paddingLeft: 10,
-    elevation: 1,  // Low elevation for Android
-    zIndex: 1,
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '100%',
+    position: 'relative', // Ensures child elements position correctly
   },
+  
+  pastChatItem: {
+    flex: 1,             
+    paddingRight: 35,   
+    color: '#000',        
+  },
+  
+  ellipsisContainer: {
+    position: 'absolute',  
+    right: 0,           
+    backgroundColor: 'white',
+    padding: 5,            
+    backgroundColorOpacity: 0.1,
+    // iOS shadow
+    shadowColor: 'white',
+    shadowOffset: { width: 50, height: 2 },
+    shadowOpacity: 0.9,
+    shadowRadius: 10,
+    elevation: 5,
+    zIndex: 10,            
+  },
+  
+  
   floatingMenu: {
     position: 'absolute',
     top: 0, // Adjust based on design
@@ -770,16 +806,18 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
-  userMessage: { alignSelf: 'flex-end', backgroundColor: '#e9e8e9', fontWeight: 'bold' },
-  botMessage: { alignSelf: 'flex-start', backgroundColor: '#abaaaa', fontWeight: 'bold' },
-  inputContainer: { flexDirection: 'row', padding: 2, alignItems: 'center', height: '9%', backgroundColor: '#02843e' },
+  userMessage: { alignSelf: 'flex-end', backgroundColor: '#03a1e7'},
+  botMessage: { alignSelf: 'flex-start', backgroundColor: '#f3f3f2'},
+  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
+  typeCon: { backgroundColor: '#03a1e7', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,},
   input: { flex: 1, marginRight: '2%', backgroundColor: '#02843e', color: 'white', borderRadius: 10, padding: 10 },
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: 'white', justifyContent: 'center', alignItems: 'center' },
-  upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: '#02843e', paddingHorizontal: 10 },
+  upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
+  mainLogo: { fontSize: 20, fontWeight: 'bold', color: 'black', textAlign: 'center', flex: 1 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
   sideMenu: { position: 'absolute', justifyContent: 'center', width: '75%', backgroundColor: 'white', padding: 20, marginTop: '12%', zIndex: 1000, height: '100%' },
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
-  pastChatItem: { padding: 10, fontSize: 16, borderBottomWidth: 1, borderBottomColor: '#ccc' },
+  pastChatItem: { padding: 10, fontSize: 16,  borderBottomColor: '#ccc' },
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
   loadMoreButton: {
@@ -794,7 +832,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   highlightChatItem: {
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '',
     fontWeight: 'bold',
   },
   modalContainer: {
@@ -823,5 +861,19 @@ const styles = StyleSheet.create({
 
   languageText: {
     fontSize: 16,
+  },
+  typingIndicator: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 10,
+  },
+  typingText: {
+    fontSize: 16,
+    color: 'gray',
+  },
+  dot: {
+    fontSize: 40,
+    color: 'gray',
+    marginLeft: 2,
   },
 });
