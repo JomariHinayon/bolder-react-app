@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TextInput,
-  Button,
   ScrollView,
   StyleSheet,
   TouchableOpacity,
@@ -11,8 +10,8 @@ import {
   Dimensions,
   FlatList,
   TouchableWithoutFeedback,
-  Modal,
   Alert,
+  useColorScheme 
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vector-icons
 import axios from 'axios';
@@ -52,6 +51,8 @@ const ChatbotComponent = ({ navigation }) => {
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
   const sideMenuAnim = useState(new Animated.Value(-sideMenuWidth))[0];
+  const rightMenuOpacity = useState(new Animated.Value(0))[0];
+
   const deleteButtonRef = useRef(null);
   const scrollViewRef = useRef(null);
 
@@ -277,29 +278,45 @@ const ChatbotComponent = ({ navigation }) => {
     }
   };
 
-  // Open side menu with animation
   const openSideMenu = () => {
     setIsSideMenuVisible(true);
-    setSideMenuButtonText(t('close')); // Use localized close text
-    Animated.timing(sideMenuAnim, {
-      toValue: 0,
-      duration: 300,
-      useNativeDriver: true,
-    }).start();
+    setSideMenuButtonText(t('close')); // Localized close text
+  
+    Animated.parallel([
+      Animated.timing(sideMenuAnim, {
+        toValue: 0,            
+        duration: 300,
+        useNativeDriver: true,
+      }),
+      Animated.timing(rightMenuOpacity, {
+        toValue: 1,           
+        duration: 600,
+        useNativeDriver: true,
+      }),
+    ]).start();
   };
+  
+  
 
   // Close side menu with animation
   const closeSideMenu = () => {
+    setSideMenuButtonText(t('open'));
+  
+    // Slide out Left Menu
     Animated.timing(sideMenuAnim, {
       toValue: -sideMenuWidth,
       duration: 300,
       useNativeDriver: true,
-    }).start(() => {
-      setIsSideMenuVisible(false);
-      setSideMenuButtonText(t('sideMenu')); // Use localized side menu text
-    });
+    }).start();
+  
+    // Fade out Right Menu
+    Animated.timing(rightMenuOpacity, {
+      toValue: 0, 
+      duration: 300,
+      useNativeDriver: true,
+    }).start(() => setIsSideMenuVisible(false));
   };
-
+  
   // Start a new chat
   const newChat = async () => {
     if (messages.length > 1) {
@@ -535,100 +552,102 @@ const ChatbotComponent = ({ navigation }) => {
         
         {/* Side Menu */}
         {isSideMenuVisible && (
-          <Animated.View style={[styles.sideMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
-             <View style={styles.firstColumn}>
-             <Text style={styles.titleLogo}>AI Bolder</Text>
-            <TouchableOpacity onPress={closeSideMenu}>
-          <Ionicons name="close-outline" size={30} color="black" />
-        </TouchableOpacity>
-      </View>
+          <View style={styles.sideMenu}>
+            <Animated.View style={[styles.leftMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
+              <View style={styles.firstColumn}>
+              <Text style={styles.titleLogo}>AI Bolder</Text>
+              <TouchableOpacity onPress={closeSideMenu}>
+                <Ionicons name="close-outline" size={30} color="black" />
+              </TouchableOpacity>
+              </View>
+              {/* Second Column: + New Chat Button */}
+              <View style={styles.secondColumn}>
+                <TouchableOpacity onPress={newChat} style={styles.fullButton}>
+                  <Ionicons name="add" size={20} color="#41b7ec" />
+                  <Text style={styles.newChatText}>{t('New chat')}</Text>
+                </TouchableOpacity>
+              </View>
+              {/* Third Column: Ads Box */}
+              <View style={styles.adsBox}>
+                <Text style={styles.adsText}>{t('Available Credits: 10')}</Text>
+              </View>
 
-      {/* Second Column: + New Chat Button */}
-      <View style={styles.secondColumn}>
-        <TouchableOpacity onPress={newChat} style={styles.fullButton}>
-          <Ionicons name="add" size={20} color="#41b7ec" />
-          <Text style={styles.newChatText}>{t('New chat')}</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* Third Column: Ads Box */}
-
-      <View style={styles.adsBox}>
-        <Text style={styles.adsText}>{t('Available Credits: 10')}</Text>
-      </View>
-
-
-      <View style={styles.chatHistory}>
-         <Ionicons name="chatbox-ellipses-outline" size={20}></Ionicons>
-         <Text style={styles.chatHistoryTitle}>{t('Chat history')}</Text>
-      </View>
-    
-      <FlatList
-          data={pastChats}
-          keyExtractor={(item) => item}
-          renderItem={({ item }) => (
-            <TouchableOpacity
-              onPress={() => loadChat(item)}
-              onLongPress={() => handleLongPress(item)}
-              style={styles.chatItemContainer}
-            >
-              <View style={styles.chatContent}>
-                <View style={styles.row}>
-                  {/* Text that can extend under the ellipsis */}
-                  <Text
-                    style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
+              <View style={styles.chatHistory}>
+                <Ionicons name="chatbox-ellipses-outline" size={20}></Ionicons>
+                <Text style={styles.chatHistoryTitle}>{t('Chat history')}</Text>
+              </View>
+          
+              <FlatList
+                  data={pastChats}
+                  keyExtractor={(item) => item}
+                  renderItem={({ item }) => (
+                    <TouchableOpacity
+                      onPress={() => loadChat(item)}
+                      onLongPress={() => handleLongPress(item)}
+                      style={styles.chatItemContainer}
                     >
-                    {item}
-                  </Text>
-                  <View style={styles.ellipsisContainer}>
-                    <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
-                      <Ionicons name="ellipsis-vertical" size={20} color="#555" />
+                      <View style={styles.chatContent}>
+                        <View style={styles.row}>
+                          {/* Text that can extend under the ellipsis */}
+                          <Text
+                            style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
+                            >
+                            {item}
+                          </Text>
+                          <View style={styles.ellipsisContainer}>
+                            <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
+                              <Ionicons name="ellipsis-vertical" size={20} color="#555" />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+
+
+
+
+                        {/* Floating Delete & Clear Buttons */}
+                        {selectedChat === item && deleteButtonVisible && (
+                          <View style={styles.floatingMenu}>
+                            <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
+                              <Text style={styles.deleteText}>{t('delete')}</Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
+                              <Text style={styles.clearText}>{t('clear')}</Text>
+                            </TouchableOpacity>
+                          </View>
+                        )}
+                      </View>
                     </TouchableOpacity>
-                  </View>
+                  )}
+                  contentContainerStyle={{ padding: 5 }}
+                  style={{ maxHeight: '78%' }}
+                />
+            
+              {/* settings */}
+              <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
+                <View style={{ 
+                  flexDirection: 'row', 
+                  alignItems: 'center', 
+                  borderTopWidth: 2, 
+                  borderColor: '#F2F2F2', 
+                  padding: 12,
+                  backgroundColor: 'black',
+                  backgroundColorOpacity: 0.1,
+                  position: 'absoulte',
+                  borderRadius: 10
+                  
+                  
+                }}>
+                  <Ionicons size={25} color="white" name="settings-outline" />
+                  <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>Settings</Text>
                 </View>
+              </TouchableOpacity>
+            </Animated.View>
+            <Animated.View style={[styles.rightMenu, { opacity: rightMenuOpacity }]}>
 
+              
+            </Animated.View>
 
-
-
-                {/* Floating Delete & Clear Buttons */}
-                {selectedChat === item && deleteButtonVisible && (
-                  <View style={styles.floatingMenu}>
-                    <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
-                      <Text style={styles.deleteText}>{t('delete')}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
-                      <Text style={styles.clearText}>{t('clear')}</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            </TouchableOpacity>
-          )}
-          contentContainerStyle={{ padding: 5 }}
-          style={{ maxHeight: '78%' }}
-        />
-
-
-        
-           
-            {/* settings */}
-            <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
-              <View style={{ 
-                flexDirection: 'row', 
-                alignItems: 'center', 
-                borderTopWidth: 2, 
-                borderColor: '#F2F2F2', 
-                padding: 10,
-                backgroundColor: 'black',
-                backgroundColorOpacity: 0.1,
-              }}>
-                <Ionicons size={25} color="white" name="settings-outline" />
-                <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>Settings</Text>
-              </View>
-            </TouchableOpacity>
-
-
-          </Animated.View>
+          </View>
         )}
        
       </View>
@@ -771,6 +790,7 @@ const styles = StyleSheet.create({
     right: 0,           
     backgroundColor: 'white',
     padding: 5,            
+    backgroundColorOpacity: 0.1,
     // iOS shadow
   
     zIndex: 10,            
@@ -814,13 +834,32 @@ const styles = StyleSheet.create({
   userMessage: { alignSelf: 'flex-end', backgroundColor: '#03a1e7'},
   botMessage: { alignSelf: 'flex-start', backgroundColor: '#f3f3f2'},
   inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
-  typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,},
+  typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7,
+   
+  },
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
   mainLogo: { fontSize: 20, fontWeight: 'bold', color: 'black', textAlign: 'center', flex: 1 },
   chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute', justifyContent: 'center', width: '75%', backgroundColor: 'white', padding: 20, marginTop: '12%', zIndex: 1000, height: '100%' },
+  sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',  marginTop: '12%', zIndex: 1000, height: '100%' },
+  leftMenu: {
+    position: 'absolute',
+    top: 0,
+    left: 0,              
+    height: '100%',       
+    width: '78%',        
+    backgroundColor: 'white',
+    padding: 15,
+    zIndex: 50,
+    elevation: 5,          
+    shadowColor: '#000',   
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.25,
+    shadowRadius: 3.84,
+  },  
+  rightMenu: {position: '', backgroundColor: 'black', width: '100%', top: 0, left: 0, backgroundColor: 'rgba(52, 52, 52, 0.8)'},
+
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16,  borderBottomColor: '#ccc' },
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },

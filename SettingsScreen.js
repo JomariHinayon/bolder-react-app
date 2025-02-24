@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, Modal, TouchableOpacity, Text, Alert } from 'react-native';
+import { View, Button, StyleSheet, Modal, TouchableOpacity, Text, Alert, Switch } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,8 @@ const SettingsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
+  const [cacheSize, setCacheSize] = useState('0 KB');
+
 
   const languages = [
     { code: 'en', name: t('english') },
@@ -23,7 +25,7 @@ const SettingsScreen = ({ navigation }) => {
         i18n.changeLanguage(languageCode);
         setSelectedLanguage(languageCode);
         await AsyncStorage.setItem('selectedLanguage', languageCode);
-        navigation.navigate('Chatbot'); // Navigate back to Chatbot to apply changes
+        navigation.navigate('Chatbot'); 
       },
     });
   }, [navigation, i18n]);
@@ -41,6 +43,30 @@ const SettingsScreen = ({ navigation }) => {
     closeLanguageModal();
   };
 
+  const calculateCacheSize = async () => {
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const items = await AsyncStorage.multiGet(keys);
+
+      let totalSize = 0;
+
+      items.forEach(([key, value]) => {
+        if (value) {
+          totalSize += key.length + value.length;
+        }
+      });
+
+      // Convert bytes to KB or MB
+      const sizeInKB = totalSize / 1024;
+      const formattedSize = sizeInKB >= 1024
+        ? `${(sizeInKB / 1024).toFixed(2)} MB`
+        : `${sizeInKB.toFixed(2)} KB`;
+
+      setCacheSize(formattedSize);
+    } catch (error) {
+      console.error('Error calculating cache size:', error);
+    }
+  };
   const deleteAllChats = async () => {
     Alert.alert(
       t('Delete all chats?'),
@@ -59,8 +85,9 @@ const SettingsScreen = ({ navigation }) => {
               const chatKeys = keys.filter((key) => key.startsWith('chatHistory_'));
               await AsyncStorage.multiRemove(chatKeys);
               await AsyncStorage.removeItem('pastChats');
+              setCacheSize('0 KB');
               alert(t('deleteAllChatsSuccess'));
-              navigation.navigate('Chatbot'); // Navigate back to Chatbot to reload the app
+              navigation.navigate('Chatbot'); 
             } catch (error) {
               console.error('Error deleting all chats:', error);
             }
@@ -70,10 +97,25 @@ const SettingsScreen = ({ navigation }) => {
       { cancelable: true }
     );
   };
+  useEffect(() => {
+    calculateCacheSize();
+  }, []);
+
 
   return (
     <View style={styles.container}>
-      
+      {/* dark mode */}
+      <TouchableOpacity  style={styles.languageCon}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+            <Ionicons size={25} color="black" name="moon-outline" />
+            <Text style={styles.languageText}>Dark Mode</Text>
+          </View>
+          <Switch
+              trackColor={{false: '#767577', true: '#81b0ff'}}
+            />
+      </TouchableOpacity>
+
+      {/* select language */}
       <TouchableOpacity onPress={openLanguageModal} style={styles.languageCon}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }} >
             <Ionicons size={25} color="black" name="language-sharp" />
@@ -83,12 +125,26 @@ const SettingsScreen = ({ navigation }) => {
       </TouchableOpacity>
 
 
+
       <View style={styles.deleteAllCon}>
-        <Button title={t('Delete all chats')} onPress={deleteAllChats}  />
+        <Text style={styles.cacheSize}>{cacheSize}</Text>
+        <Text style={styles.cacheText}>
+          This is your accumulated space from chat history.
+        </Text>
+        <TouchableOpacity style={styles.deleteAllBtn} onPress={deleteAllChats}>
+          <Text style={styles.deleteAllText}>{t('Clear chat history')}</Text> 
+        </TouchableOpacity>
       </View>
-      <View style={styles.aboutCon}>
-        <Button title={t('Delete all chats')} onPress={deleteAllChats} />
-      </View>
+
+      {/* about */}
+      <TouchableOpacity  style={styles.languageCon}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+            <Ionicons size={30} color="black" name="information-circle-outline" />
+            <Text style={styles.languageText}>About</Text>
+          </View>
+          <Ionicons size={25} name="chevron-down-sharp" />
+
+      </TouchableOpacity>
 
       <Modal visible={isLanguageModalVisible} transparent={true} animationType="slide" onRequestClose={closeLanguageModal}>
         <View style={styles.modalContainer}>
@@ -114,13 +170,14 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: 'start',
     alignItems: 'start',
-    backgroundColor: '#f5f5f5',
+    backgroundColor: '#f0f0f0',
+    gap: 5
   },
   modalContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+    backgroundColor: ''
   },
   modalContent: {
     width: '80%',
@@ -138,14 +195,52 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between', // Space out left and right items
     alignItems: 'center',
-    padding: 10,
+    padding: 15,
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
+    backgroundColor: 'white',
+    borderRadius: 10,
+    
   },
   
   languageText: {
     marginLeft: 10,
     fontSize: 16,
   },
+  deleteAllCon:{
+    backgroundColor: 'white',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: 200,
+    gap: 4,
+    borderRadius: 10,
+    padding: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+    backgroundColor: 'white',
+  },
+  deleteAllBtn:{
+    backgroundColor: '#FF2E00',
+    padding: 15,
+    borderRadius: 10,
+    marginTop: 10,
+    width:200,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: '#ccc',
+  },
+  cacheSize:{
+    fontSize: 30,
+    fontWeight: 'bold'
+  },
+  cacheText:{
+    fontSize: 15,
+    fontWeight: 'normal'
+  },
+  deleteAllText:{
+    fontSize: 15,
+    color: 'white'
+  }
   
 });
