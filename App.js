@@ -47,6 +47,7 @@ const ChatbotComponent = ({ navigation }) => {
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [cacheSize, setCacheSize] = useState(0);
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -69,6 +70,7 @@ const ChatbotComponent = ({ navigation }) => {
   useEffect(() => {
     loadPastChats();
     loadLanguage();
+    loadSettings();
   }, []);
 
   // Scroll to the end of the chat when messages update
@@ -93,6 +95,14 @@ const ChatbotComponent = ({ navigation }) => {
     if (savedLanguage) {
       i18n.changeLanguage(savedLanguage); // Change the app's language
       setSelectedLanguage(savedLanguage);
+    }
+  };
+
+  // Load saved settings
+  const loadSettings = async () => {
+    const savedDarkMode = await AsyncStorage.getItem('isDarkMode');
+    if (savedDarkMode !== null) {
+      setIsDarkMode(JSON.parse(savedDarkMode));
     }
   };
 
@@ -473,7 +483,7 @@ const ChatbotComponent = ({ navigation }) => {
         }
       }}
     >
-      <View style={styles.container}>
+      <View style={[styles.container, isDarkMode && styles.darkContainer]}>
         <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
           <TouchableOpacity onPress={toggleSideMenu}>
             <Ionicons name="reorder-three-outline" size={40} color="black"></Ionicons>
@@ -673,6 +683,9 @@ export default Chatbot;
 
 const styles = StyleSheet.create({
   container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: 'white', overflow: 'hidden' },
+  darkContainer: {
+    backgroundColor: '#242425',
+  },
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
   firstColumn: {
     flexDirection: 'row',

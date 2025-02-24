@@ -4,12 +4,13 @@ import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 
+
 const SettingsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [cacheSize, setCacheSize] = useState('0 KB');
-
+  const [isDarkMode, setIsDarkMode] = useState(false);
 
   const languages = [
     { code: 'en', name: t('english') },
@@ -30,6 +31,16 @@ const SettingsScreen = ({ navigation }) => {
     });
   }, [navigation, i18n]);
 
+  useEffect(() => {
+    const loadSettings = async () => {
+      const savedDarkMode = await AsyncStorage.getItem('isDarkMode');
+      if (savedDarkMode !== null) {
+        setIsDarkMode(JSON.parse(savedDarkMode));
+      }
+    };
+    loadSettings();
+  }, []);
+
   const openLanguageModal = () => {
     setIsLanguageModalVisible(true);
   };
@@ -42,6 +53,19 @@ const SettingsScreen = ({ navigation }) => {
     navigation.getParam('handleLanguageSelect')(languageCode);
     closeLanguageModal();
   };
+
+  const toggleDarkMode = async () => {
+    try {
+      const newDarkMode = !isDarkMode;
+      setIsDarkMode(newDarkMode);
+
+      await AsyncStorage.setItem('isDarkMode', JSON.stringify(newDarkMode));
+
+    } catch (error) {
+      console.error('Error toggling dark mode:', error);
+    }
+  };
+  
 
   const calculateCacheSize = async () => {
     try {
@@ -103,32 +127,32 @@ const SettingsScreen = ({ navigation }) => {
 
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* dark mode */}
-      <TouchableOpacity  style={styles.languageCon}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-            <Ionicons size={25} color="black" name="moon-outline" />
-            <Text style={styles.languageText}>Dark Mode</Text>
-          </View>
-          <Switch
-              trackColor={{false: '#767577', true: '#81b0ff'}}
-            />
+      <TouchableOpacity style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="moon-outline" />
+          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>Dark Mode</Text>
+        </View>
+        <Switch
+          trackColor={{ false: '#767577', true: '#007acd' }}
+          value={isDarkMode}
+          onValueChange={toggleDarkMode}
+        />
       </TouchableOpacity>
 
       {/* select language */}
-      <TouchableOpacity onPress={openLanguageModal} style={styles.languageCon}>
-          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-            <Ionicons size={25} color="black" name="language-sharp" />
-            <Text style={styles.languageText}>Language</Text>
-          </View>
-          <Ionicons size={25} name="chevron-down-sharp" />
+      <TouchableOpacity onPress={openLanguageModal} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
+        <View style={{ flexDirection: 'row', alignItems: 'center' }}>
+          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="language-sharp" />
+          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>Language</Text>
+        </View>
+        <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="chevron-down-sharp" />
       </TouchableOpacity>
 
-
-
-      <View style={styles.deleteAllCon}>
-        <Text style={styles.cacheSize}>{cacheSize}</Text>
-        <Text style={styles.cacheText}>
+      <View style={[styles.deleteAllCon, isDarkMode && styles.darkSmCon]}>
+        <Text style={[styles.cacheSize, isDarkMode && styles.darkText]}>{cacheSize}</Text>
+        <Text style={[styles.cacheText, isDarkMode && styles.darkText]}>
           This is your accumulated space from chat history.
         </Text>
         <TouchableOpacity style={styles.deleteAllBtn} onPress={deleteAllChats}>
@@ -137,22 +161,22 @@ const SettingsScreen = ({ navigation }) => {
       </View>
 
       {/* about */}
-      <TouchableOpacity  style={styles.languageCon}>
+      <TouchableOpacity  style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-            <Ionicons size={30} color="black" name="information-circle-outline" />
-            <Text style={styles.languageText}>About</Text>
+            <Ionicons size={30} color={isDarkMode ? "white" : "black"} name="information-circle-outline" />
+            <Text style={[styles.languageText, isDarkMode && styles.darkText]}>About</Text>
           </View>
-          <Ionicons size={25} name="chevron-down-sharp" />
+          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="chevron-down-sharp" />
 
       </TouchableOpacity>
 
       <Modal visible={isLanguageModalVisible} transparent={true} animationType="slide" onRequestClose={closeLanguageModal}>
         <View style={styles.modalContainer}>
-          <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>{t('Select language')}</Text>
+          <View style={[styles.modalContent, isDarkMode && styles.darkModalContent]}>
+            <Text style={[styles.modalTitle, isDarkMode && styles.darkText]}>{t('Select language')}</Text>
             {languages.map((language) => (
               <TouchableOpacity key={language.code} style={styles.languageItem} onPress={() => handleLanguageSelect(language.code)}>
-                <Text style={styles.languageText}>{language.name}</Text>
+                <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{language.name}</Text>
               </TouchableOpacity>
             ))}
             <Button title={t('close')} onPress={closeLanguageModal} />
@@ -170,8 +194,18 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: 'start',
     alignItems: 'start',
-    backgroundColor: '#f0f0f0',
-    gap: 5
+    backgroundColor: '#f3f3f2',
+    gap: 5,
+    flex: 1
+  },
+  darkContainer: {
+    backgroundColor: '#242425',
+  },
+  darkSmCon:{
+    backgroundColor: '#3f3f42',
+  },
+  darkText:{
+    color: 'white'
   },
   modalContainer: {
     flex: 1,
@@ -184,6 +218,9 @@ const styles = StyleSheet.create({
     backgroundColor: 'white',
     borderRadius: 10,
     padding: 20,
+  },
+  darkModalContent: {
+    backgroundColor: '#444',
   },
   modalTitle: {
     fontSize: 18,
@@ -206,6 +243,9 @@ const styles = StyleSheet.create({
   languageText: {
     marginLeft: 10,
     fontSize: 16,
+  },
+  darkText: {
+    color: 'white',
   },
   deleteAllCon:{
     backgroundColor: 'white',
