@@ -56,8 +56,9 @@ const styles = StyleSheet.create({
       borderRadius: 10,
       
     },
+  
     selectedLanguageItem:{
-      backgroundColor: '#242425',
+      backgroundColor: '#f3f3f2',
 
     },
     allLanguageCon:{
@@ -68,6 +69,17 @@ const styles = StyleSheet.create({
 
     selectedLanguageText:{
       fontWeight: 'bold',
+    },
+    selectedDarkLanguageText:{
+      fontWeight: 'bold',
+
+    },
+    darkLanguageItem:{
+      backgroundColor: 'transparent',
+
+    },
+    selectedDarkLanguageItem:{
+      backgroundColor: '#2d2c2e',
     },
     languageItem: {
         backgroundColor: 'transparent',
