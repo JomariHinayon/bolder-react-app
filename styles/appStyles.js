@@ -296,19 +296,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: '#ccc',
   },
-  selectedLanguageItem: {
-    backgroundColor: '#d3d3d3',
-  },
-  selectedLanguageText: {
-    fontWeight: 'bold',
-  },
-  darkSelectedLanguageItem: {
-    backgroundColor: '#555',
-  },
-  darkSelectedLanguageText: {
-    fontWeight: 'bold',
-    color: 'white',
-  },
+
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',

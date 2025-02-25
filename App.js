@@ -22,7 +22,7 @@ import SettingsScreen from './SettingsScreen';
 import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
-import styles from './styles'; // Import the external stylesheet
+import styles from './styles/appStyles';
 
 const Stack = createStackNavigator();
 
