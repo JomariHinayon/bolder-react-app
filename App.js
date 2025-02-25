@@ -27,7 +27,7 @@ import * as Animatable from 'react-native-animatable';
 
 const Stack = createStackNavigator();
 
-const ChatbotComponent = ({ navigation }) => {
+const ChatbotComponent = ({ navigation, route }) => {
   const { t, i18n } = useTranslation(); // Use the translation hook
 
   // State variables
@@ -47,7 +47,7 @@ const ChatbotComponent = ({ navigation }) => {
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [cacheSize, setCacheSize] = useState(0);
-  const [isDarkMode, setIsDarkMode] = useState(false);
+  const [isDarkMode, setIsDarkMode] = useState(route.params?.isDarkMode || false);
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -212,7 +212,7 @@ const ChatbotComponent = ({ navigation }) => {
           messages: [
             {
               role: 'system',
-              content: t('translatePrompt', { language: targetLanguage }), // Use localized prompt
+              content: t('translatePrompt', { language: targetLanguage }), 
             },
             { role: 'user', content: text },
           ],
@@ -505,7 +505,7 @@ const ChatbotComponent = ({ navigation }) => {
           {/* load more */}
           {showLoadMore && (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={styles.loadMoreText}>{t('See more messages')}</Text> 
+              <Text style={styles.loadMoreText}>{t('seeMoreMessages')}</Text> 
             </TouchableOpacity>
           )}
 
@@ -542,7 +542,7 @@ const ChatbotComponent = ({ navigation }) => {
               style={styles.input}
             value={userInput}
             onChangeText={setUserInput}
-            placeholder={t('Write a message ...')} 
+            placeholder={t('writeAMessage')} 
             placeholderTextColor="white"/>
             <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')}>
               <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
@@ -574,17 +574,17 @@ const ChatbotComponent = ({ navigation }) => {
               <View style={styles.secondColumn}>
                 <TouchableOpacity onPress={newChat} style={styles.fullButton}>
                   <Ionicons name="add" size={20} color="#41b7ec" />
-                  <Text style={styles.newChatText}>{t('New chat')}</Text>
+                  <Text style={styles.newChatText}>{t('newChat')}</Text>
                 </TouchableOpacity>
               </View>
               {/* Third Column: Ads Box */}
               <View style={styles.adsBox}>
-                <Text style={styles.adsText}>{t('Available Credits: 10')}</Text>
+                <Text style={styles.adsText}>{t('availableCredits')}</Text>
               </View>
 
               <View style={styles.chatHistory}>
                 <Ionicons name="chatbox-ellipses-outline" size={20}></Ionicons>
-                <Text style={styles.chatHistoryTitle}>{t('Chat history')}</Text>
+                <Text style={styles.chatHistoryTitle}>{t('chatHistory')}</Text>
               </View>
           
               <FlatList
@@ -648,7 +648,7 @@ const ChatbotComponent = ({ navigation }) => {
                   
                 }}>
                   <Ionicons size={25} color="white" name="settings-outline" />
-                  <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>Settings</Text>
+                  <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>{t('settings')}</Text>
                 </View>
               </TouchableOpacity>
             </Animated.View>

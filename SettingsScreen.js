@@ -18,6 +18,9 @@ const SettingsScreen = ({ navigation }) => {
     { code: 'fr', name: t('french') },
     { code: 'de', name: t('german') },
     { code: 'zh', name: t('chinese') },
+    { code: 'jp', name: t('japanese') },
+    { code: 'kr', name: t('korean') },
+    { code: 'th', name: t('thai') },  
   ];
 
   useEffect(() => {
@@ -49,9 +52,12 @@ const SettingsScreen = ({ navigation }) => {
     setIsLanguageModalVisible(false);
   };
 
-  const handleLanguageSelect = (languageCode) => {
-    navigation.getParam('handleLanguageSelect')(languageCode);
+  const handleLanguageSelect = async (languageCode) => {
+    i18n.changeLanguage(languageCode);
+    setSelectedLanguage(languageCode);
+    await AsyncStorage.setItem('selectedLanguage', languageCode);
     closeLanguageModal();
+    navigation.navigate('Chatbot'); 
   };
 
   const toggleDarkMode = async () => {
@@ -60,7 +66,7 @@ const SettingsScreen = ({ navigation }) => {
       setIsDarkMode(newDarkMode);
 
       await AsyncStorage.setItem('isDarkMode', JSON.stringify(newDarkMode));
-
+      navigation.navigate('Chatbot', { isDarkMode: newDarkMode });
     } catch (error) {
       console.error('Error toggling dark mode:', error);
     }
@@ -80,7 +86,6 @@ const SettingsScreen = ({ navigation }) => {
         }
       });
 
-      // Convert bytes to KB or MB
       const sizeInKB = totalSize / 1024;
       const formattedSize = sizeInKB >= 1024
         ? `${(sizeInKB / 1024).toFixed(2)} MB`
@@ -93,8 +98,8 @@ const SettingsScreen = ({ navigation }) => {
   };
   const deleteAllChats = async () => {
     Alert.alert(
-      t('Delete all chats?'),
-      t('All existing chats will be deleted'),
+      t('deleteAllChatsTitle'),
+      t('deleteAllChats'),
       [
         {
           text: t('cancel'),
@@ -132,7 +137,7 @@ const SettingsScreen = ({ navigation }) => {
       <TouchableOpacity style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="moon-outline" />
-          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>Dark Mode</Text>
+          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('darkMode')}</Text>
         </View>
         <Switch
           trackColor={{ false: '#767577', true: '#007acd' }}
@@ -145,7 +150,7 @@ const SettingsScreen = ({ navigation }) => {
       <TouchableOpacity onPress={openLanguageModal} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="language-sharp" />
-          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>Language</Text>
+          <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('language')}</Text>
         </View>
         <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="chevron-down-sharp" />
       </TouchableOpacity>
@@ -153,10 +158,9 @@ const SettingsScreen = ({ navigation }) => {
       <View style={[styles.deleteAllCon, isDarkMode && styles.darkSmCon]}>
         <Text style={[styles.cacheSize, isDarkMode && styles.darkText]}>{cacheSize}</Text>
         <Text style={[styles.cacheText, isDarkMode && styles.darkText]}>
-          This is your accumulated space from chat history.
-        </Text>
+        {t('accumulatedSpace')}        </Text>
         <TouchableOpacity style={styles.deleteAllBtn} onPress={deleteAllChats}>
-          <Text style={styles.deleteAllText}>{t('Clear chat history')}</Text> 
+          <Text style={styles.deleteAllText}>{t('clearChatHistory')}</Text> 
         </TouchableOpacity>
       </View>
 
@@ -164,7 +168,7 @@ const SettingsScreen = ({ navigation }) => {
       <TouchableOpacity  style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }} >
             <Ionicons size={30} color={isDarkMode ? "white" : "black"} name="information-circle-outline" />
-            <Text style={[styles.languageText, isDarkMode && styles.darkText]}>About</Text>
+            <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('about')}</Text>
           </View>
           <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="chevron-down-sharp" />
 
@@ -173,7 +177,7 @@ const SettingsScreen = ({ navigation }) => {
       <Modal visible={isLanguageModalVisible} transparent={true} animationType="slide" onRequestClose={closeLanguageModal}>
         <View style={styles.modalContainer}>
           <View style={[styles.modalContent, isDarkMode && styles.darkModalContent]}>
-            <Text style={[styles.modalTitle, isDarkMode && styles.darkText]}>{t('Select language')}</Text>
+            <Text style={[styles.modalTitle, isDarkMode && styles.darkText]}>{t('selectLanguage')}</Text>
             {languages.map((language) => (
               <TouchableOpacity key={language.code} style={styles.languageItem} onPress={() => handleLanguageSelect(language.code)}>
                 <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{language.name}</Text>
