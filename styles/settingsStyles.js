@@ -133,6 +133,19 @@ const styles = StyleSheet.create({
     deleteAllText:{
       fontSize: 15,
       color: 'white'
+    },
+    darkDropdownContent:{
+
+    },
+    dropdownContent:{
+      padding: 20,
+      backgroundColor: 'white',
+      borderRadius: 5,
+      marginTop: 0,
+      marginBottom: 10,
+      flexDirection: 'column',
+      justifyContent: 'center',
+      alignItems: 'center',
     }
     
   });
