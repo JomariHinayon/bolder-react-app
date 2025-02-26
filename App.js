@@ -677,10 +677,11 @@ const ChatbotComponent = ({ navigation, route }) => {
               {/* Third Column: Ads Box */}
               <View style={styles.adsBox}>
                 {dailyCredits > 0 ? (
-                  <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
+                  <Text style={[styles.adsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+
                 ) : (
                  
-                  <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+                  <Text style={[styles.otherWatchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
 
                 )}
               </View>

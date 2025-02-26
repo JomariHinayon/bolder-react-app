@@ -93,6 +93,7 @@ const styles = StyleSheet.create({
     fontSize: 13,
     marginLeft: 10,
     fontWeight: 'normal',
+    color: 'red',
   },
   titleLogo:{
    fontSize: 20,
@@ -239,6 +240,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   watchAdsText: {color: 'white', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
+  otherWatchAdsText: {color: 'red', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
   darkWatchAdsText: {color: 'red'},
   watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
