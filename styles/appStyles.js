@@ -109,9 +109,10 @@ const styles = StyleSheet.create({
       justifyContent: 'start', 
       flexDirection: 'row',
       backgroundColor: "#f3f3f2",
-      padding: 10,
+      padding: 5,
       borderRadius: 10,
       overflow: 'visible',
+      marginTop: 10
   },
   darkChatHistory:{ 
     backgroundColor: '#3f3f42',
@@ -228,7 +229,18 @@ const styles = StyleSheet.create({
   inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
   typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   darkTypeCon: { backgroundColor: '#007acd' },
-  
+  darkNoTypeCon: { backgroundColor: '#3f3f42', color: 'red', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
+  noTypeCon: {  borderTopEndRadius:7,
+    borderBottomStartRadius:9,
+    borderBottomEndRadius:7, 
+    borderLeftWidth:2,
+    borderBottomWidth:2, 
+    borderColor:"rgba(0, 0, 0, 0.34)",
+    flexDirection: 'row',
+    backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
+  watchAdsText: {color: 'white', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
+  darkWatchAdsText: {color: 'red'},
+  watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
@@ -311,6 +323,70 @@ const styles = StyleSheet.create({
     color: '#cdcdcc',
     marginLeft: 1,
   },
+
+  adModalBg: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
+  },
+  adModalCon:{
+    width: '80%',
+    backgroundColor: 'white',
+    height: '60%',
+    flexDirection: 'column',
+    borderRadius:20,
+    overflow: 'hidden',
+  },
+  adCloseButton:{
+    position: 'absolute',
+    right: 10,
+    top: 10,
+    elevate: 10,
+    zIndex: 10,
+    padding: 5,
+    backgroundColor: 'rgba(0, 0, 0, 0.46)',
+    borderRadius: 25,
+    width: 37,
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+  closeButtonText:{
+    color: 'white',
+
+  },
+  adUpperCon:{
+    backgroundColor: '#f3f3f2',
+    padding: 5,
+    height: '75%',
+    borderBottomRightRadius: 25,
+    borderBottomLeftRadius: 25,
+  },
+  adLowerCon:{
+    backgroundColor: 'transparent',
+    padding: 5,
+    height: '25%',
+    justifyContent: 'center',
+    alignItems: 'center',
+
+  },
+  adModalText:{
+    fontSize: 15,
+    fontWeight: 'normal',
+    color: '#333',
+    textAlign: 'center',
+  },
+  modalSecText:{
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 10,
+  }
+
+
+
 });
 
 export default styles;

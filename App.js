@@ -9,7 +9,8 @@ import {
   Dimensions,
   FlatList,
   TouchableWithoutFeedback,
-  Alert
+  Alert,
+  Modal
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 import axios from 'axios';
@@ -23,6 +24,7 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
+
 
 const Stack = createStackNavigator();
 
@@ -47,6 +49,9 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [cacheSize, setCacheSize] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(route.params?.isDarkMode || false);
+  const [isAdModalVisible, setIsAdModalVisible] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+  const [dailyCredits, setDailyCredits] = useState(10); // Initialize daily credits
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -70,6 +75,8 @@ const ChatbotComponent = ({ navigation, route }) => {
     loadPastChats();
     loadLanguage();
     loadSettings();
+    loadMessageCount();
+    loadDailyCredits();
   }, []);
 
   // Scroll to the end of the chat when messages update
@@ -102,6 +109,66 @@ const ChatbotComponent = ({ navigation, route }) => {
     const savedDarkMode = await AsyncStorage.getItem('isDarkMode');
     if (savedDarkMode !== null) {
       setIsDarkMode(JSON.parse(savedDarkMode));
+    }
+  };
+
+  const loadMessageCount = async () => {
+    try {
+      const storedCount = await AsyncStorage.getItem('messageCount');
+      if (storedCount !== null) {
+        setMessageCount(parseInt(storedCount, 10));
+      }
+    } catch (error) {
+      console.error('Error loading message count:', error);
+    }
+  };
+
+  const incrementMessageCount = async () => {
+    try {
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      await AsyncStorage.setItem('messageCount', newCount.toString());
+    } catch (error) {
+      console.error('Error incrementing message count:', error);
+    }
+  };
+
+  // Load daily credits from AsyncStorage
+  const loadDailyCredits = async () => {
+    try {
+      const storedCredits = await AsyncStorage.getItem('dailyCredits');
+      const lastReset = await AsyncStorage.getItem('lastReset');
+      const now = new Date();
+
+      if (storedCredits && lastReset) {
+        const lastResetDate = new Date(lastReset);
+        if (now.getDate() !== lastResetDate.getDate()) {
+          // Reset credits if the date has changed
+          setDailyCredits(10);
+          await AsyncStorage.setItem('dailyCredits', '10');
+          await AsyncStorage.setItem('lastReset', now.toISOString());
+        } else {
+          setDailyCredits(parseInt(storedCredits, 10));
+        }
+      } else {
+        // Initialize credits and last reset date if not set
+        setDailyCredits(10);
+        await AsyncStorage.setItem('dailyCredits', '10');
+        await AsyncStorage.setItem('lastReset', now.toISOString());
+      }
+    } catch (error) {
+      console.error('Error loading daily credits:', error);
+    }
+  };
+
+  // Decrement daily credits
+  const decrementDailyCredits = async () => {
+    try {
+      const newCredits = dailyCredits - 1;
+      setDailyCredits(newCredits);
+      await AsyncStorage.setItem('dailyCredits', newCredits.toString());
+    } catch (error) {
+      console.error('Error decrementing daily credits:', error);
     }
   };
 
@@ -232,12 +299,18 @@ const ChatbotComponent = ({ navigation, route }) => {
   };
 
   const sendMessage = async () => {
-    if (!userInput.trim()) return; // Don't send empty messages
+    if (!userInput.trim() || dailyCredits <= 0) return; // Don't send empty messages or if no credits left
+
+    // Decrement daily credits
+    await decrementDailyCredits();
 
     // Add user message to the messages array
     const newMessages = [...messages, { role: 'user', content: userInput }];
     setMessages(newMessages);
     setUserInput(''); // Clear the input field
+
+    // Increment message count
+    await incrementMessageCount();
 
     // Generate AI response
     setIsTyping(true);
@@ -473,6 +546,10 @@ const ChatbotComponent = ({ navigation, route }) => {
     }
   };
 
+  const toggleAdModal = () => {
+    setIsAdModalVisible(!isAdModalVisible);
+  };
+
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -489,7 +566,7 @@ const ChatbotComponent = ({ navigation, route }) => {
           </TouchableOpacity>
           {/* <Text style={styles.chatTitle}>{chatTitle} </Text> */}
           <Text style={[styles.mainLogo, isDarkMode && styles.darkText]}>AI Bolder</Text>
-          <TouchableOpacity style={styles.adBtn}>
+          <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
              <Image source={require('./assets/gift.png')} style={{ width: 40, height: 40 }} />
            </TouchableOpacity>
 
@@ -554,20 +631,31 @@ const ChatbotComponent = ({ navigation, route }) => {
 
         {/* typing section */}
         <View style={styles.inputContainer}>
-           <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
-            <TextInput
-              style={styles.input}
-            value={userInput}
-            onChangeText={setUserInput}
-            placeholder={t('writeAMessage')} 
-            placeholderTextColor="white"/>
-            <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')}>
-              <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
-            </TouchableOpacity>
-         
-            </View>
+
+ 
+              {dailyCredits > 0 ? (
+                      <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
+                        <TextInput style={styles.input} value={userInput} onChangeText={setUserInput} placeholder={t('writeAMessage')} 
+                          placeholderTextColor="white"/>
+                        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')} >
+                          <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
+                        </TouchableOpacity>
+                      </View>             
+                ) : (
+                  <TouchableOpacity style={[styles.noTypeCon,  isDarkMode && styles.darkNoTypeCon]} onPress={toggleAdModal}>
+                    <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('lowCredits')}</Text>
+                  </TouchableOpacity>   
+              
+                )}
+
+
+
+ 
 
         </View>
+
+
+        
         
         {/* Side Menu */}
         {isSideMenuVisible && (
@@ -588,7 +676,13 @@ const ChatbotComponent = ({ navigation, route }) => {
               </View>
               {/* Third Column: Ads Box */}
               <View style={styles.adsBox}>
-                <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')}</Text>
+                {dailyCredits > 0 ? (
+                  <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
+                ) : (
+                 
+                  <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+
+                )}
               </View>
 
               <View style={[styles.chatHistory, isDarkMode && styles.darkChatHistory]}>
@@ -654,7 +748,34 @@ const ChatbotComponent = ({ navigation, route }) => {
 
           </View>
         )}
-       
+
+        {/* Ad modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isAdModalVisible}
+          onRequestClose={toggleAdModal}
+        >
+          <View style={styles.adModalBg}>
+            <View style={styles.adModalCon}>
+              {/* <Text style={styles.modalText}>{t('adModalContent')}</Text> */}
+              <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
+                <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
+              </TouchableOpacity>
+              <View style={styles.adUpperCon}>
+                 
+              </View>
+              
+              <View style={styles.adLowerCon}>
+                <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
+                <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
+
+              </View>
+
+
+            </View>
+          </View>
+        </Modal>
       </View>
     </TouchableWithoutFeedback>
   );

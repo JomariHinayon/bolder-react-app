@@ -225,8 +225,9 @@ const styles = StyleSheet.create({
     borderColor: '#2d2c2e',
   },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
-  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
+  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: ''  },
   typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
+  noTypeCon: {backgroundColor: 'red', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   darkTypeCon: { backgroundColor: '#007acd' },
   
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
