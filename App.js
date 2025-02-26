@@ -4,26 +4,27 @@ import {
   Text,
   TextInput,
   ScrollView,
-  StyleSheet,
   TouchableOpacity,
   Animated,
   Dimensions,
   FlatList,
   TouchableWithoutFeedback,
   Alert,
-  useColorScheme 
+  Modal
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons'; // Make sure to install @expo/vector-icons
+import { Ionicons } from '@expo/vector-icons'; 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from '@env';
-import { useTranslation, I18nextProvider } from 'react-i18next'; // Import I18nextProvider
-import i18n from './i18n'; // Import your i18n configuration
+import { useTranslation, I18nextProvider } from 'react-i18next'; 
+import i18n from './i18n'; 
 import { NavigationContainer } from '@react-navigation/native';
-import SettingsScreen from './SettingsScreen'; // Import the settings screen
+import SettingsScreen from './SettingsScreen'; 
 import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
+import styles from './styles/appStyles';
+
 
 const Stack = createStackNavigator();
 
@@ -48,6 +49,9 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [selectedLanguage, setSelectedLanguage] = useState('en');
   const [cacheSize, setCacheSize] = useState(0);
   const [isDarkMode, setIsDarkMode] = useState(route.params?.isDarkMode || false);
+  const [isAdModalVisible, setIsAdModalVisible] = useState(false);
+  const [messageCount, setMessageCount] = useState(0);
+  const [dailyCredits, setDailyCredits] = useState(10); // Initialize daily credits
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -71,6 +75,8 @@ const ChatbotComponent = ({ navigation, route }) => {
     loadPastChats();
     loadLanguage();
     loadSettings();
+    loadMessageCount();
+    loadDailyCredits();
   }, []);
 
   // Scroll to the end of the chat when messages update
@@ -103,6 +109,66 @@ const ChatbotComponent = ({ navigation, route }) => {
     const savedDarkMode = await AsyncStorage.getItem('isDarkMode');
     if (savedDarkMode !== null) {
       setIsDarkMode(JSON.parse(savedDarkMode));
+    }
+  };
+
+  const loadMessageCount = async () => {
+    try {
+      const storedCount = await AsyncStorage.getItem('messageCount');
+      if (storedCount !== null) {
+        setMessageCount(parseInt(storedCount, 10));
+      }
+    } catch (error) {
+      console.error('Error loading message count:', error);
+    }
+  };
+
+  const incrementMessageCount = async () => {
+    try {
+      const newCount = messageCount + 1;
+      setMessageCount(newCount);
+      await AsyncStorage.setItem('messageCount', newCount.toString());
+    } catch (error) {
+      console.error('Error incrementing message count:', error);
+    }
+  };
+
+  // Load daily credits from AsyncStorage
+  const loadDailyCredits = async () => {
+    try {
+      const storedCredits = await AsyncStorage.getItem('dailyCredits');
+      const lastReset = await AsyncStorage.getItem('lastReset');
+      const now = new Date();
+
+      if (storedCredits && lastReset) {
+        const lastResetDate = new Date(lastReset);
+        if (now.getDate() !== lastResetDate.getDate()) {
+          // Reset credits if the date has changed
+          setDailyCredits(10);
+          await AsyncStorage.setItem('dailyCredits', '10');
+          await AsyncStorage.setItem('lastReset', now.toISOString());
+        } else {
+          setDailyCredits(parseInt(storedCredits, 10));
+        }
+      } else {
+        // Initialize credits and last reset date if not set
+        setDailyCredits(10);
+        await AsyncStorage.setItem('dailyCredits', '10');
+        await AsyncStorage.setItem('lastReset', now.toISOString());
+      }
+    } catch (error) {
+      console.error('Error loading daily credits:', error);
+    }
+  };
+
+  // Decrement daily credits
+  const decrementDailyCredits = async () => {
+    try {
+      const newCredits = dailyCredits - 1;
+      setDailyCredits(newCredits);
+      await AsyncStorage.setItem('dailyCredits', newCredits.toString());
+    } catch (error) {
+      console.error('Error decrementing daily credits:', error);
     }
   };
 
@@ -179,7 +245,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions', // Fixed typo in the URL
         {
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
             { role: 'user', content: firstMessage },
@@ -208,7 +274,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: [
             {
               role: 'system',
@@ -233,12 +299,18 @@ const ChatbotComponent = ({ navigation, route }) => {
   };
 
   const sendMessage = async () => {
-    if (!userInput.trim()) return; // Don't send empty messages
+    if (!userInput.trim() || dailyCredits <= 0) return; // Don't send empty messages or if no credits left
+
+    // Decrement daily credits
+    await decrementDailyCredits();
 
     // Add user message to the messages array
     const newMessages = [...messages, { role: 'user', content: userInput }];
     setMessages(newMessages);
     setUserInput(''); // Clear the input field
+
+    // Increment message count
+    await incrementMessageCount();
 
     // Generate AI response
     setIsTyping(true);
@@ -246,7 +318,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       const res = await axios.post(
         'https://api.openai.com/v1/chat/completions',
         {
-          model: 'gpt-3.5-turbo',
+          model: 'gpt-4o-mini',
           messages: newMessages,
         },
         {
@@ -474,6 +546,10 @@ const ChatbotComponent = ({ navigation, route }) => {
     }
   };
 
+  const toggleAdModal = () => {
+    setIsAdModalVisible(!isAdModalVisible);
+  };
+
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -484,13 +560,13 @@ const ChatbotComponent = ({ navigation, route }) => {
       }}
     >
       <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-        <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight]}>
+        <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
           <TouchableOpacity onPress={toggleSideMenu}>
-            <Ionicons name="reorder-three-outline" size={40} color="black"></Ionicons>
+            <Ionicons name="reorder-three-outline" size={40} color={isDarkMode ? "white" : "black"}></Ionicons>
           </TouchableOpacity>
           {/* <Text style={styles.chatTitle}>{chatTitle} </Text> */}
-          <Text style={styles.mainLogo}>AI Bolder</Text>
-          <TouchableOpacity style={styles.adBtn}>
+          <Text style={[styles.mainLogo, isDarkMode && styles.darkText]}>AI Bolder</Text>
+          <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
              <Image source={require('./assets/gift.png')} style={{ width: 40, height: 40 }} />
            </TouchableOpacity>
 
@@ -505,19 +581,37 @@ const ChatbotComponent = ({ navigation, route }) => {
           {/* load more */}
           {showLoadMore && (
             <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={styles.loadMoreText}>{t('seeMoreMessages')}</Text> 
+              <Text style={[styles.loadMoreText, isDarkMode && styles.darkBlueText]}>{t('seeMoreMessages')}</Text> 
             </TouchableOpacity>
           )}
 
           {messages.map((msg, index) => (
-         <View
+            <View
             key={index}
-            style={[styles.message, msg.role === 'user' ? styles.userMessage : styles.botMessage]}
+            style={[
+              styles.message,
+              msg.role === 'user' ? styles.userMessage : styles.botMessage,
+              isDarkMode && (msg.role === 'user' ? styles.darkUserMessage : styles.darkBotMessage)
+            ]}
           >
-            <Text style={{ color: msg.role === 'user' ? 'white' : 'black' }}>
+            <Text
+              style={[
+                {
+                  color: isDarkMode 
+                    ? 'white'                             // Dark mode: both texts white
+                    : msg.role === 'user' 
+                      ? 'white'                          // Light mode: user text white
+                      : 'black'                          // Light mode: bot text black
+                },
+                styles.languageText,
+                isDarkMode && styles.darkText
+              ]}
+            >
               {msg.content}
             </Text>
           </View>
+          
+
           
           ))}
           {isTyping && (
@@ -537,54 +631,63 @@ const ChatbotComponent = ({ navigation, route }) => {
 
         {/* typing section */}
         <View style={styles.inputContainer}>
-           <View style={styles.typeCon}>
-            <TextInput
-              style={styles.input}
-            value={userInput}
-            onChangeText={setUserInput}
-            placeholder={t('writeAMessage')} 
-            placeholderTextColor="white"/>
-            <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')}>
-              <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
-            </TouchableOpacity>
-          {/* <TextInput
-            style={styles.input}
-            value={userInput}
-            onChangeText={setUserInput}
-            placeholder={t('Type here ...')} 
-            placeholderTextColor="white"/>
-          <View style={styles.roundButtonContainer}>
-            <Button style={styles.roundButton} onPress={sendMessage} title={t('send')} /> 
-          </View> */}
-            </View>
+
+ 
+              {dailyCredits > 0 ? (
+                      <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
+                        <TextInput style={styles.input} value={userInput} onChangeText={setUserInput} placeholder={t('writeAMessage')} 
+                          placeholderTextColor="white"/>
+                        <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')} >
+                          <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
+                        </TouchableOpacity>
+                      </View>             
+                ) : (
+                  <TouchableOpacity style={[styles.noTypeCon,  isDarkMode && styles.darkNoTypeCon]} onPress={toggleAdModal}>
+                    <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('lowCredits')}</Text>
+                  </TouchableOpacity>   
+              
+                )}
+
+
+
+ 
 
         </View>
+
+
+        
         
         {/* Side Menu */}
         {isSideMenuVisible && (
           <View style={styles.sideMenu}>
-            <Animated.View style={[styles.leftMenu, { transform: [{ translateX: sideMenuAnim }] }]}>
+            <Animated.View style={[styles.leftMenu, isDarkMode && styles.darkLeftMenu, { transform: [{ translateX: sideMenuAnim } ] }]}>
               <View style={styles.firstColumn}>
-              <Text style={styles.titleLogo}>AI Bolder</Text>
+              <Text style={[styles.titleLogo, isDarkMode && styles.darkText]}>AI Bolder</Text>
               <TouchableOpacity onPress={closeSideMenu}>
-                <Ionicons name="close-outline" size={30} color="black" />
+                <Ionicons name="close-outline" size={30} color={isDarkMode ? "white" : "black"} />
               </TouchableOpacity>
               </View>
               {/* Second Column: + New Chat Button */}
-              <View style={styles.secondColumn}>
+              <View style={[styles.secondColumn, isDarkMode && styles.darksecondColumn]}>
                 <TouchableOpacity onPress={newChat} style={styles.fullButton}>
-                  <Ionicons name="add" size={20} color="#41b7ec" />
-                  <Text style={styles.newChatText}>{t('newChat')}</Text>
+                  <Ionicons name="add" size={20}  color={isDarkMode ? "#007acd" : "#41b7ec"} />
+                  <Text style={[styles.newChatText, isDarkMode && styles.darkBlueText]} >{t('newChat')}</Text>
                 </TouchableOpacity>
               </View>
               {/* Third Column: Ads Box */}
               <View style={styles.adsBox}>
-                <Text style={styles.adsText}>{t('availableCredits')}</Text>
+                {dailyCredits > 0 ? (
+                  <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
+                ) : (
+                 
+                  <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+
+                )}
               </View>
 
-              <View style={styles.chatHistory}>
-                <Ionicons name="chatbox-ellipses-outline" size={20}></Ionicons>
-                <Text style={styles.chatHistoryTitle}>{t('chatHistory')}</Text>
+              <View style={[styles.chatHistory, isDarkMode && styles.darkChatHistory]}>
+                <Ionicons name="chatbox-ellipses-outline" size={20} color={isDarkMode ? "white" : "black"}                ></Ionicons>
+                <Text style={[styles.chatHistoryTitle, isDarkMode && styles.darkText]}>{t('chatHistory')}</Text>
               </View>
           
               <FlatList
@@ -594,17 +697,15 @@ const ChatbotComponent = ({ navigation, route }) => {
                     <TouchableOpacity
                       onPress={() => loadChat(item)}
                       onLongPress={() => handleLongPress(item)}
-                      style={styles.chatItemContainer}
-                    >
+                      style={styles.chatItemContainer} >
                       <View style={styles.chatContent}>
                         <View style={styles.row}>
-                          {/* Text that can extend under the ellipsis */}
                           <Text
-                            style={[styles.pastChatItem, selectedChat === item && styles.highlightChatItem]}
+                            style={[styles.pastChatItem, isDarkMode && styles.darkText, selectedChat === item && styles.highlightChatItem]}
                             >
                             {item}
                           </Text>
-                          <View style={styles.ellipsisContainer}>
+                          <View style={[styles.ellipsisContainer, isDarkMode && styles.darkEllipsisContainer]}>
                             <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
                               <Ionicons name="ellipsis-vertical" size={20} color="#555" />
                             </TouchableOpacity>
@@ -616,8 +717,8 @@ const ChatbotComponent = ({ navigation, route }) => {
 
                         {/* Floating Delete & Clear Buttons */}
                         {selectedChat === item && deleteButtonVisible && (
-                          <View style={styles.floatingMenu}>
-                            <TouchableOpacity onPress={() => deleteChat(item)} style={styles.floatingButton}>
+                          <View style={[styles.floatingMenu, isDarkMode && styles.darkFloatingMenu]}>
+                            <TouchableOpacity onPress={() => deleteChat(item)} style={[styles.floatingButton, isDarkMode && styles.darkFloatingButton]}>
                               <Text style={styles.deleteText}>{t('delete')}</Text>
                             </TouchableOpacity>
                             <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
@@ -634,38 +735,52 @@ const ChatbotComponent = ({ navigation, route }) => {
             
               {/* settings */}
               <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
-                <View style={{ 
-                  flexDirection: 'row', 
-                  alignItems: 'center', 
-                  borderTopWidth: 2, 
-                  borderColor: '#F2F2F2', 
-                  padding: 12,
-                  backgroundColor: 'black',
-                  backgroundColorOpacity: 0.1,
-                  position: 'absoulte',
-                  borderRadius: 10
-                  
-                  
-                }}>
+                <View style={[styles.settings, isDarkMode && styles.darkSettings]}>
                   <Ionicons size={25} color="white" name="settings-outline" />
                   <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>{t('settings')}</Text>
                 </View>
               </TouchableOpacity>
             </Animated.View>
-            <Animated.View style={[styles.rightMenu, { opacity: rightMenuOpacity }]}>
+            <Animated.View style={[styles.rightMenu, isDarkMode && styles.darkRightMenu, { opacity: rightMenuOpacity }]}>
 
               
             </Animated.View>
 
           </View>
         )}
-       
+
+        {/* Ad modal */}
+        <Modal
+          animationType="slide"
+          transparent={true}
+          visible={isAdModalVisible}
+          onRequestClose={toggleAdModal}
+        >
+          <View style={styles.adModalBg}>
+            <View style={styles.adModalCon}>
+              {/* <Text style={styles.modalText}>{t('adModalContent')}</Text> */}
+              <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
+                <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
+              </TouchableOpacity>
+              <View style={styles.adUpperCon}>
+                 
+              </View>
+              
+              <View style={styles.adLowerCon}>
+                <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
+                <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
+
+              </View>
+
+
+            </View>
+          </View>
+        </Modal>
       </View>
     </TouchableWithoutFeedback>
   );
 };
 
-// Wrap the ChatbotComponent with I18nextProvider and NavigationContainer
 const Chatbot = () => {
   return (
     <I18nextProvider i18n={i18n}>
@@ -680,257 +795,3 @@ const Chatbot = () => {
 };
 
 export default Chatbot;
-
-const styles = StyleSheet.create({
-  container: { flex: 1, paddingTop: '12%', padding: 2, backgroundColor: 'white', overflow: 'hidden' },
-  darkContainer: {
-    backgroundColor: '#242425',
-  },
-  chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
-  firstColumn: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '',
-    height: 55,
-  },
-  secondColumn: {
-    alignItems: 'center',
-    justifyContent: 'center', // Center content vertically
-    backgroundColor: '#f2fafe', // Background color
-    height: 45,
-    borderRadius: 10, // Border radius
-    borderWidth: 1, // Border width
-    borderColor: '#41b7ec', // Border color
-    paddingHorizontal: 10, // Optional: Add padding for better spacing
-    marginBottom: 10
-  },
-  fullButton: {
-    flexDirection: 'row', // Align icon and text horizontally
-    alignItems: 'center', // Center content vertically
-    justifyContent: 'start', // Center content horizontally
-    width: '100%', // Make the button fill the container
-    height: '100%', // Make the button fill the container
-  },
-  newChatText: {
-    marginLeft: 10, // Space between icon and text
-    fontSize: 14,
-    color: '#41b7ec', // Font color
-  },
-  adsBox: {
-    backgroundColor: '',
-    borderRadius: 5,
-    alignItems: 'end',
-    height: 30,
-    justifyContent: 'end'
-  },
-  adsText: {
-    fontSize: 13,
-    marginLeft: 10,
-    fontWeight: 'normal',
-  },
-  titleLogo:{
-   fontSize: 20,
-    fontWeight: 'bold',
-  },
-  chatHistoryTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
-    color: '#333',
-    marginLeft:5
-  },
-
-  chatHistory: {
-      alignItems: 'center',
-      justifyContent: 'start', 
-      flexDirection: 'row',
-      backgroundColor: "#f3f3f2",
-      padding: 10,
-      borderRadius: 10,
-      overflow: 'visible',
-
-  },
-  chatItemContainer: {
-    borderRadius: 10,
-    backgroundColor: 'transparent',
-    width: '100%',
-    overflow: 'visible', 
-  },
-  
-  chatContent: {
-    flexDirection: 'row',
-    zIndex:0,
-    overflow: 'visible',
-    width: '100%',
-
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    overflow: 'visible', 
-    backgroundColor: '',
-    borderBottomWidth: 1,
-    borderColor: '#f3f3f2',
-    width: '100%'
-  },
-  pastChatItem: {
-    fontSize: 16,
-    color: '#333',
-    flex: 1,
-    elevation: 1,
-    overflow: 'visible',
-
-  },
-  highlightChatItem: {
-    fontWeight: 'bold',
-    color: '#007AFF',
-  },
-  row: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    width: '100%',
-    position: 'relative', // Ensures child elements position correctly
-  },
-  
-  pastChatItem: {
-    flex: 1,             
-    paddingRight: 35,   
-    color: '#000',        
-  },
-  
-  ellipsisContainer: {
-    position: 'absolute',  
-    right: 0,           
-    backgroundColor: 'white',
-    padding: 5,            
-    backgroundColorOpacity: 0.1,
-    // iOS shadow
-  
-    zIndex: 10,            
-  },
-  
-  
-  floatingMenu: {
-    position: 'absolute',
-    width: 100,
-    top: 0, 
-    right: 0,
-    backgroundColor: '#fff',
-    borderRadius: 5,
-    elevation: 50, 
-    zIndex: 9999, 
-    overflow: 'visible', 
-    shadow: 'none'
-
-  },
-  
-  floatingButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    height:'50%',
-    overflow: 'visible', 
-    shadow: 'none'
-
-    
-  },
-  deleteText: {
-    color: 'red',
-    fontWeight: 'bold',
-  },
-  clearText: {
-    color: '#007AFF',
-    fontWeight: 'bold',
-  },
-  message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
-  userMessage: { alignSelf: 'flex-end', backgroundColor: '#03a1e7'},
-  botMessage: { alignSelf: 'flex-start', backgroundColor: '#f3f3f2'},
-  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
-  typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7,
-   
-  },
-  input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
-  roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
-  upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
-  mainLogo: { fontSize: 20, fontWeight: 'bold', color: 'black', textAlign: 'center', flex: 1 },
-  chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',  marginTop: '12%', zIndex: 1000, height: '100%' },
-  leftMenu: {
-    position: 'absolute',
-    top: 0,
-    left: 0,              
-    height: '100%',       
-    width: '78%',        
-    backgroundColor: 'white',
-    padding: 15,
-    zIndex: 50,
-    elevation: 5,          
-    shadowColor: '#000',   
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.25,
-    shadowRadius: 3.84,
-  },  
-  rightMenu: {position: '', backgroundColor: 'black', width: '100%', top: 0, left: 0, backgroundColor: 'rgba(52, 52, 52, 0.8)'},
-
-  pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
-  pastChatItem: { padding: 10, fontSize: 16,  borderBottomColor: '#ccc' },
-  deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
-  typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
-  loadMoreButton: {
-    backgroundColor: '',
-    padding: 10,
-    borderRadius: 5,
-    marginVertical: 10,
-    alignItems: 'center',
-  },
-  loadMoreText: {
-    color: '#03a1e7',
-    fontWeight: 'bold',
-  },
-  highlightChatItem: {
-    backgroundColor: '',
-    fontWeight: 'bold',
-  },
-  modalContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  modalContent: {
-    width: '80%',
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 10,
-    textAlign: 'center',
-  },
-  languageItem: {
-    padding: 10,
-    borderBottomWidth: 1,
-    borderBottomColor: '#ccc',
-  },
-
-  languageText: {
-    fontSize: 16,
-  },
-  typingIndicator: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 10,
-  },
-  typingText: {
-    fontSize: 16,
-    color: 'gray',
-  },
-  dot: {
-    fontSize: 50,
-    color: '#cdcdcc',
-    marginLeft: 1,
-  },
-});
