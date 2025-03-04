@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
       justifyContent: 'start',
       alignItems: 'start',
       backgroundColor: '#f3f3f2',
-      gap: 5,
+      gap: 10,
       flex: 1
     },
     darkContainer: {
@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
       color: 'white'
     },
     modalContainer: {
+
       flex: 1,
       justifyContent: 'center',
       alignItems: 'center',
@@ -27,8 +28,9 @@ const styles = StyleSheet.create({
     modalContent: {
       width: '80%',
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 20,
       padding: 20,
+      height: 500
     },
     darkModalContent: {
       backgroundColor: '#444',
@@ -53,13 +55,13 @@ const styles = StyleSheet.create({
       borderBottomWidth: 1,
       borderBottomColor: '#ccc',
       backgroundColor: 'white',
-      borderRadius: 10,
+      borderRadius: 20,
       
     },
   
     selectedLanguageItem:{
       backgroundColor: '#f3f3f2',
-
+      borderRadiius: 25
     },
     allLanguageCon:{
       backgroundColor: '',
@@ -112,9 +114,9 @@ const styles = StyleSheet.create({
       backgroundColor: 'white',
     },
     deleteAllBtn:{
-      backgroundColor: '#FF2E00',
+      backgroundColor: 'black',
       padding: 15,
-      borderRadius: 10,
+      borderRadius: 25,
       marginTop: 10,
       width:200,
       justifyContent: 'center',
@@ -149,6 +151,10 @@ const styles = StyleSheet.create({
     },
     darkDropdownContent:{
       backgroundColor: '#3f3f42',
+    },
+    dropDownBoldText:{
+      fontWeight: 'bold',
+      fontSize: 15
     }
     
   });

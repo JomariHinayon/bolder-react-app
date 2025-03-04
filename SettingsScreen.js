@@ -184,9 +184,9 @@ const SettingsScreen = ({ navigation }) => {
       </TouchableOpacity>
       {isAboutDropdownVisible && (
         <View style={[styles.dropdownContent, isDarkMode && styles.darkDropdownContent]}>
-          <Image source={require('./assets/logoBolder.png')} style={{ width: 90, height: 90, marginBottom:5, borderRadius: 15}} />
-          <Text style={[styles.dropdownText, isDarkMode && styles.darkText]}>{t('AI Bolder version 1.0.0')}</Text>
-          <Text style={[styles.dropdownText, isDarkMode && styles.darkText]}>{t('© 2025 Earth, Universe')}</Text>
+          <Image source={require('./assets/logoAI.png')} style={{ width: 90, height: 90, marginBottom:5, borderRadius: 15}} />
+          <Text style={[styles.dropDownBoldText, isDarkMode && styles.darkText]}>{t('AI Chat version 1.0.0')}</Text>
+          <Text style={[styles.dropdownText, isDarkMode && styles.darkText]}>{t('© 2025')}</Text>
 
         </View>
       )}

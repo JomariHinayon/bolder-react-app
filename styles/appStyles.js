@@ -14,20 +14,51 @@ const styles = StyleSheet.create({
   darkBlueText:{
     color: '#007acd'
   },
+
+
+  newChatCon:{
+      backgroundColor: 'transparent',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: 400,
+    },
+    logoAINew:{
+      height: 120,
+      width: 120,
+      marginBottom: 15,
+
+    },
+    hiImYourAIAgent:{
+      fontSize: 22,
+      fontWeight: 'bold'
+    },
+    howCanIHelpYouToday:{
+      fontSize: 16,
+      color: 'grey'
+
+    },
+
+
+
   message: {
-    padding: 10,
+    padding: 15,
     borderRadius: 8,
-    marginVertical: 4,
-    color: 'white'
+    marginVertical: 0,
+    color: 'white',
 
   },
   userMessage: {
-    backgroundColor: '#03a1e7', 
+    backgroundColor: 'black', 
     alignSelf: 'flex-end',
+    borderRadius: 25,
+  
   },
   botMessage: {
-    backgroundColor: '#f0f0f0', 
+    backgroundColor: 'transparent', 
     alignSelf: 'flex-start',
+    padding: 25,
+    flexDiretion: 'column'
   },
   darkUserMessage: {
     backgroundColor: '#007acd', 
@@ -36,7 +67,8 @@ const styles = StyleSheet.create({
     backgroundColor: '#3f3f42', 
   },
   languageText: {
-    fontSize: 16,
+    fontSize: 15,
+    marginTop: 5
   },
   darkText: {
     color: 'white', 
@@ -46,19 +78,18 @@ const styles = StyleSheet.create({
   chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
   firstColumn: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: '',
-    height: 55,
+    height: 70,
   },
   secondColumn: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f2fafe',
-    height: 45,
-    borderRadius: 10,
+    height: 50,
+    borderRadius: 20,
     borderWidth: 1,
-    borderColor: '#41b7ec',
+    borderColor: 'black',
     paddingHorizontal: 10,
     marginBottom: 10
   },
@@ -71,15 +102,16 @@ const styles = StyleSheet.create({
   fullButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'start',
+    justifyContent: 'center',
     width: '100%',
     height: '100%',
+    gap: 5
   },
  
   newChatText: {
     marginLeft: 10,
-    fontSize: 14,
-    color: '#41b7ec',
+    fontSize: 16,
+    color: 'black',
   },
   adsBox: {
     backgroundColor: '',
@@ -90,16 +122,26 @@ const styles = StyleSheet.create({
   },
   
   adsText: {
-    fontSize: 13,
+    fontSize: 14,
     marginLeft: 10,
-    fontWeight: 'normal',
+    fontWeight: 'bold',
+    color: 'black',
+    textAlign: 'center'
+
+  },
+  noCreds:{
+    fontSize: 14,
+    marginLeft: 10,
+    fontWeight: 'bold',
+    color: 'red',
+    textAlign: 'center'
   },
   titleLogo:{
    fontSize: 20,
     fontWeight: 'bold',
   },
   chatHistoryTitle: {
-    fontSize: 16,
+    fontSize: 17,
     fontWeight: 'bold',
     color: '#333',
     marginLeft:5
@@ -108,11 +150,13 @@ const styles = StyleSheet.create({
       alignItems: 'center',
       justifyContent: 'start', 
       flexDirection: 'row',
-      backgroundColor: "#f3f3f2",
-      padding: 5,
+      backgroundColor: "transparent",
+      padding: 10,
       borderRadius: 10,
       overflow: 'visible',
-      marginTop: 10
+      marginTop: 10,
+      borderTopWidth: 2,
+      borderColor: '#f3f3f2',
   },
   darkChatHistory:{ 
     backgroundColor: '#3f3f42',
@@ -196,9 +240,7 @@ const styles = StyleSheet.create({
   floatingButton: {
     paddingVertical: 8,
     paddingHorizontal: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: '#e0e0e0',
-    height:'50%',
+    height:'100%',
     overflow: 'visible', 
     shadow: 'none'
   },
@@ -226,8 +268,9 @@ const styles = StyleSheet.create({
     borderColor: '#2d2c2e',
   },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
-  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '11%', backgroundColor: '' },
-  typeCon: { backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
+  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '13%', backgroundColor: ''},
+  typeCon: { backgroundColor: '#f2f2f5', justifyContent: 'space-between', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60,  borderRadius: 35, },
+  sendBtn: {backgroundColor: 'black', padding: 5, width: 50, height: 50, borderRadius: 25,  justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   darkTypeCon: { backgroundColor: '#007acd' },
   darkNoTypeCon: { backgroundColor: '#3f3f42', color: 'red', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   noTypeCon: {  borderTopEndRadius:7,
@@ -238,14 +281,16 @@ const styles = StyleSheet.create({
     borderColor:"rgba(0, 0, 0, 0.34)",
     flexDirection: 'row',
     backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
-  watchAdsText: {color: 'white', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
+  watchAdsText: {color: 'red', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
   darkWatchAdsText: {color: 'red'},
   watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
+  typeYourMessage: {color: 'black', fontSize: 15, backgroundColor: 'transparent', width: '80%', marginLeft: 15},
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
-  upperCon: { flexDirection: 'row', justifyContent: 'center', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 20 },
-  mainLogo: { fontSize: 20, fontWeight: 'bold', textAlign: 'center', flex: 1, color: '' },
-  chatTitle: { fontSize: 16, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
+  upperCon: { flexDirection: 'row',  justifyContent: 'space-between', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 15, width: '100%', borderEndColor: 'black' , borderBottomColor: '#f2f2f5', borderBottomWidth: 1},
+  adBtn: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 15,justifyContent: 'center', alignItems:'center', backgroundColor: 'black', height: 45, padding: 0, gap: 5, width: '40%'},
+  getRewardsText: {color: 'white',  fontWeight: 'bold', fontSize: 14},
+  chatTitle: { fontSize: 13, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
   sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',  marginTop: '12%', zIndex: 1000, height: '100%' },
   darkLeftMenu:{ backgroundColor: '#2d2c2e' },
   darkRightMenu:{  backgroundColor: 'rgba(27, 26, 26, 0.8)' },
@@ -255,7 +300,7 @@ const styles = StyleSheet.create({
     top: 0,
     left: 0,              
     height: '100%',       
-    width: '78%',        
+    width: '85%',        
     backgroundColor: 'white',
     padding: 15,
     zIndex: 50,
@@ -265,6 +310,13 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.25,
     shadowRadius: 3.84,
   },  
+  leftMenuClose:{
+    position: 'absolute',
+    top: 0,
+    right: 0,
+    margin: 5
+
+  },
   rightMenu: {position: '', backgroundColor: 'black', width: '100%', top: 0, left: 0, backgroundColor: 'rgba(52, 52, 52, 0.8)'},
   pastChatsTitle: { fontSize: 18, fontWeight: 'bold', marginVertical: 10 },
   pastChatItem: { padding: 10, fontSize: 16,  borderBottomColor: '#ccc' },
@@ -346,10 +398,14 @@ const styles = StyleSheet.create({
     zIndex: 10,
     padding: 5,
     backgroundColor: 'rgba(0, 0, 0, 0.46)',
-    borderRadius: 25,
+    borderRadius: '50%',
     width: 37,
     justifyContent: 'center',
     alignItems: 'center',
+    borderColor: 'white',
+    borderWidth: 2,
+    height: 37,
+    margin:5
 
   },
   closeButtonText:{
@@ -358,31 +414,50 @@ const styles = StyleSheet.create({
   },
   adUpperCon:{
     backgroundColor: '#f3f3f2',
-    padding: 5,
-    height: '75%',
-    borderBottomRightRadius: 25,
-    borderBottomLeftRadius: 25,
+    height: '65%',
+    overflow: 'hidden',
+    borderRadius: 20,
+    // borderWidth: 5,
+    // borderColor: 'white'
   },
+  
   adLowerCon:{
-    backgroundColor: 'transparent',
+    backgroundColor: 'rd',
     padding: 5,
-    height: '25%',
+    height: '35%',
     justifyContent: 'center',
     alignItems: 'center',
+    flexDirection: 'column',
 
+  },
+  watchAdsButton:{
+    backgroundColor: 'black',
+    padding: 20,
+    borderRadius: 40,
+    width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5
+  },
+  watchAdsText:{
+    fontSize: 17,
+    fontWeight: 'bold',
+    color: 'white',
   },
   adModalText:{
     fontSize: 15,
     fontWeight: 'normal',
     color: '#333',
     textAlign: 'center',
+    marginBottom: 10,
+
   },
   modalSecText:{
-    fontSize: 20,
+    fontSize: 19,
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-    marginBottom: 10,
   }
 
 

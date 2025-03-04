@@ -29,16 +29,14 @@ import styles from './styles/appStyles';
 const Stack = createStackNavigator();
 
 const ChatbotComponent = ({ navigation, route }) => {
-  const { t, i18n } = useTranslation(); // Use the translation hook
-
-  // State variables
+  const { t, i18n } = useTranslation(); 
   const [messages, setMessages] = useState([
-    { role: 'assistant', content: t('welcome') }, // Use localized welcome message
+    { role: 'assistant', content: 'intro' },
   ]);
   const [userInput, setUserInput] = useState('');
-  const [chatTitle, setChatTitle] = useState(t('chatTitle')); // Use localized chat title
+  const [chatTitle, setChatTitle] = useState(t('chatTitle')); 
   const [isSideMenuVisible, setIsSideMenuVisible] = useState(false);
-  const [sideMenuButtonText, setSideMenuButtonText] = useState(t('sideMenu')); // Use localized side menu text
+  const [sideMenuButtonText, setSideMenuButtonText] = useState(t('sideMenu')); 
   const [pastChats, setPastChats] = useState([]);
   const [selectedChat, setSelectedChat] = useState(null);
   const [deleteButtonVisible, setDeleteButtonVisible] = useState(false);
@@ -51,24 +49,16 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [isDarkMode, setIsDarkMode] = useState(route.params?.isDarkMode || false);
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
-  const [dailyCredits, setDailyCredits] = useState(10); // Initialize daily credits
+  const [dailyCredits, setDailyCredits] = useState(10); 
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
   const sideMenuAnim = useState(new Animated.Value(-sideMenuWidth))[0];
   const rightMenuOpacity = useState(new Animated.Value(0))[0];
 
-  const deleteButtonRef = useRef(null);
   const scrollViewRef = useRef(null);
 
-  // List of supported languages
-  const languages = [
-    { code: 'en', name: t('english') }, // Use localized language names
-    { code: 'es', name: t('spanish') },
-    { code: 'fr', name: t('french') },
-    { code: 'de', name: t('german') },
-    { code: 'zh', name: t('chinese') },
-  ];
+
 
   // Load past chats and language preference on component mount
   useEffect(() => {
@@ -79,7 +69,6 @@ const ChatbotComponent = ({ navigation, route }) => {
     loadDailyCredits();
   }, []);
 
-  // Scroll to the end of the chat when messages update
   useEffect(() => {
     if (scrollViewRef.current) {
       scrollViewRef.current.scrollToEnd({ animated: true });
@@ -99,7 +88,7 @@ const ChatbotComponent = ({ navigation, route }) => {
   const loadLanguage = async () => {
     const savedLanguage = await AsyncStorage.getItem('selectedLanguage');
     if (savedLanguage) {
-      i18n.changeLanguage(savedLanguage); // Change the app's language
+      i18n.changeLanguage(savedLanguage); 
       setSelectedLanguage(savedLanguage);
     }
   };
@@ -176,7 +165,7 @@ const ChatbotComponent = ({ navigation, route }) => {
   const saveChatHistory = async (chatHistory, title) => {
     try {
       await AsyncStorage.setItem(`chatHistory_${title}`, JSON.stringify(chatHistory));
-      await savePastChat(title); // Save the title to past chats
+      await savePastChat(title); 
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
@@ -216,7 +205,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       const storedPastChats = await AsyncStorage.getItem('pastChats');
       const pastChatsArray = storedPastChats ? JSON.parse(storedPastChats) : [];
       if (!pastChatsArray.includes(title)) {
-        pastChatsArray.unshift(title); // Add new chat to the beginning
+        pastChatsArray.unshift(title); 
         await AsyncStorage.setItem('pastChats', JSON.stringify(pastChatsArray));
         setPastChats(pastChatsArray);
       }
@@ -243,11 +232,11 @@ const ChatbotComponent = ({ navigation, route }) => {
   const generateChatTitle = async (firstMessage) => {
     try {
       const res = await axios.post(
-        'https://api.openai.com/v1/chat/completions', // Fixed typo in the URL
+        'https://api.openai.com/v1/chat/completions', 
         {
           model: 'gpt-4o-mini',
           messages: [
-            { role: 'system', content: t('generateTitlePrompt') }, // Use localized prompt
+            { role: 'system', content: t('generateTitlePrompt') },
             { role: 'user', content: firstMessage },
           ],
           max_tokens: 20,
@@ -261,10 +250,10 @@ const ChatbotComponent = ({ navigation, route }) => {
       );
 
       const generatedTitle = res.data.choices[0].message.content.trim();
-      return generatedTitle || t('chatTitle'); // Use localized fallback title
+      return generatedTitle || t('chatTitle'); 
     } catch (error) {
-      console.error('Error generating chat title:', error.response?.data || error.message); // Log full error details
-      return t('chatTitle'); // Use localized fallback title
+      console.error('Error generating chat title:', error.response?.data || error.message); 
+      return t('chatTitle'); 
     }
   };
 
@@ -294,24 +283,28 @@ const ChatbotComponent = ({ navigation, route }) => {
       return res.data.choices[0].message.content.trim();
     } catch (error) {
       console.error('Error translating text:', error);
-      return text; // Return the original text if translation fails
+      return text;
     }
   };
 
   const sendMessage = async () => {
-    if (!userInput.trim() || dailyCredits <= 0) return; // Don't send empty messages or if no credits left
-
+    if (!userInput.trim() || dailyCredits <= 0) return; 
+  
+    // Remove intro message if it exists
+    if (messages.length === 1 && messages[0].content === 'intro') {
+      setMessages([]);
+    }
+  
     // Decrement daily credits
     await decrementDailyCredits();
-
+  
     // Add user message to the messages array
     const newMessages = [...messages, { role: 'user', content: userInput }];
     setMessages(newMessages);
-    setUserInput(''); // Clear the input field
-
-    // Increment message count
+    setUserInput(''); 
+  
     await incrementMessageCount();
-
+  
     // Generate AI response
     setIsTyping(true);
     try {
@@ -328,18 +321,18 @@ const ChatbotComponent = ({ navigation, route }) => {
           },
         }
       );
-
+  
       // Add AI response to the messages array
       const botReply = res.data.choices[0].message.content;
       const updatedMessages = [...newMessages, { role: 'assistant', content: botReply }];
       setMessages(updatedMessages);
-
+  
       // Generate chat title if it's the first user message
       if (messages.length === 1) {
         const generatedTitle = await generateChatTitle(userInput);
         setChatTitle(generatedTitle);
       }
-
+  
       await saveChatHistory(updatedMessages, chatTitle);
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
@@ -350,6 +343,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       setIsTyping(false);
     }
   };
+  
 
   // Toggle side menu visibility
   const toggleSideMenu = () => {
@@ -362,7 +356,7 @@ const ChatbotComponent = ({ navigation, route }) => {
 
   const openSideMenu = () => {
     setIsSideMenuVisible(true);
-    setSideMenuButtonText(t('close')); // Localized close text
+    setSideMenuButtonText(t('close')); 
   
     Animated.parallel([
       Animated.timing(sideMenuAnim, {
@@ -404,8 +398,8 @@ const ChatbotComponent = ({ navigation, route }) => {
     if (messages.length > 1) {
       await saveChatHistory(messages, chatTitle);
     }
-    setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
-    setChatTitle(t('newConversation')); // Use localized new conversation text
+    setMessages([{ role: 'assistant', content: 'intro' }]); 
+    setChatTitle(t('newConversation')); 
     closeSideMenu();
   };
 
@@ -431,8 +425,8 @@ const ChatbotComponent = ({ navigation, route }) => {
       await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
       setPastChats(updatedPastChats);
       if (chatTitle === title) {
-        setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
-        setChatTitle(t('chatTitle')); // Use localized chat title
+        setMessages([{ role: 'assistant', content: t('welcome') }]); 
+        setChatTitle(t('chatTitle')); 
       }
     } catch (error) {
       console.error('Error deleting chat:', error);
@@ -446,41 +440,26 @@ const ChatbotComponent = ({ navigation, route }) => {
       const updatedPastChats = pastChats.filter((chat) => chat !== chatTitle);
       await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
       setPastChats(updatedPastChats);
-      setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
-      setChatTitle(t('chatTitle')); // Use localized chat title
+      setMessages([{ role: 'assistant', content: t('welcome') }]); 
+      setChatTitle(t('chatTitle')); 
     } catch (error) {
       console.error('Error clearing conversation:', error);
     }
   };
 
-  // Calculate the size of the AsyncStorage cache
-  const calculateCacheSize = async () => {
-    try {
-      const keys = await AsyncStorage.getAllKeys();
-      const items = await AsyncStorage.multiGet(keys);
-      let totalSize = 0;
-      items.forEach(([key, value]) => {
-        totalSize += key.length + value.length;
-      });
-      return totalSize;
-    } catch (error) {
-      console.error('Error calculating cache size:', error);
-      return 0;
-    }
-  };
 
   // Delete all chats
   const deleteAllChats = async () => {
     Alert.alert(
-      t('deleteAllChatsTitle'), // Use localized delete all chats title
-      t('deleteAllChatsMessage'), // Use localized delete all chats message
+      t('deleteAllChatsTitle'), 
+      t('deleteAllChatsMessage'),
       [
         {
-          text: t('cancel'), // Use localized cancel text
+          text: t('cancel'), 
           style: 'cancel',
         },
         {
-          text: t('delete'), // Use localized delete text
+          text: t('delete'), 
           style: 'destructive',
           onPress: async () => {
             try {
@@ -489,9 +468,9 @@ const ChatbotComponent = ({ navigation, route }) => {
               await AsyncStorage.multiRemove(chatKeys);
               await AsyncStorage.removeItem('pastChats');
               setPastChats([]);
-              setMessages([{ role: 'assistant', content: t('welcome') }]); // Use localized welcome message
-              setChatTitle(t('chatTitle')); // Use localized chat title
-              alert(t('deleteAllChatsSuccess')); // Use localized success message
+              setMessages([{ role: 'assistant', content: t('welcome') }]); 
+              setChatTitle(t('chatTitle'));
+              alert(t('deleteAllChatsSuccess'));
             } catch (error) {
               console.error('Error deleting all chats:', error);
             }
@@ -515,7 +494,7 @@ const ChatbotComponent = ({ navigation, route }) => {
   // Handle language selection
   const handleLanguageSelect = async (languageCode) => {
     // Update the selected language
-    i18n.changeLanguage(languageCode); // Change the app's language
+    i18n.changeLanguage(languageCode);
     setSelectedLanguage(languageCode);
 
     // Translate all messages in the chat history
@@ -528,11 +507,7 @@ const ChatbotComponent = ({ navigation, route }) => {
 
     // Update the chat history with translated messages
     setMessages(translatedMessages);
-
-    // Save the selected language to AsyncStorage
     await AsyncStorage.setItem('selectedLanguage', languageCode);
-
-    // Close the language selection modal
     closeLanguageModal();
   };
 
@@ -562,21 +537,66 @@ const ChatbotComponent = ({ navigation, route }) => {
       <View style={[styles.container, isDarkMode && styles.darkContainer]}>
         <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
           <TouchableOpacity onPress={toggleSideMenu}>
-            <Ionicons name="reorder-three-outline" size={40} color={isDarkMode ? "white" : "black"}></Ionicons>
+            <Image source={require('./assets/menu.png')} style={{ width: 37, height: 37 }} />
           </TouchableOpacity>
           {/* <Text style={styles.chatTitle}>{chatTitle} </Text> */}
-          <Text style={[styles.mainLogo, isDarkMode && styles.darkText]}>AI Bolder</Text>
+          {/* <Text style={[styles.mainLogo, isDarkMode && styles.darkText]}>AI Bolder</Text> */}
           <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
-             <Image source={require('./assets/gift.png')} style={{ width: 40, height: 40 }} />
+             <Text style={styles.getRewardsText}>{t('getRewards')}</Text>
+             
+             <Image source={require('./assets/gift.png')} style={{ width: 37, height: 37 }} />
            </TouchableOpacity>
 
 
         </View>
+
         <ScrollView
           style={styles.chatBox}
           contentContainerStyle={{ paddingBottom: 20 }}
           ref={scrollViewRef}
         >
+
+        {/* Intro message */}
+        {messages.length === 1 && messages[0].content === 'intro' ? (
+          <View style={styles.newChatCon}>
+            <Image source={require('./assets/logoAI.png')} style={styles.logoAINew} />
+            <Text style={styles.hiImYourAIAgent}>{t('hiImYourAIAgent')}</Text>
+            <Text style={styles.howCanIHelpYouToday}>{t('howCanIHelpYouToday')}</Text>
+          </View>
+        ) : (
+          messages.filter((msg, index) => !(index === 0 && msg.role === 'assistant' && msg.content === 'intro')).map((msg, index) => (
+            <View
+              key={index}
+              style={[
+                styles.message,
+                msg.role === 'user' ? styles.userMessage : styles.botMessage,
+                isDarkMode && (msg.role === 'user' ? styles.darkUserMessage : styles.darkBotMessage)
+              ]}
+            >
+              {msg.role === 'assistant' && (
+                <Image
+                  source={require('./assets/logoAI.png')}
+                  style={{ width: 25, height: 25, position: 'absolute', top: 0, left: 15 }}
+                />
+              )}
+              <Text
+                style={[
+                  {
+                    color: isDarkMode
+                      ? 'white'
+                      : msg.role === 'user'
+                      ? 'white'
+                      : 'black'
+                  },
+                  styles.languageText,
+                  isDarkMode && styles.darkText
+                ]}
+              >
+                {msg.content}
+              </Text>
+            </View>
+          ))
+        )}
 
           {/* load more */}
           {showLoadMore && (
@@ -585,35 +605,6 @@ const ChatbotComponent = ({ navigation, route }) => {
             </TouchableOpacity>
           )}
 
-          {messages.map((msg, index) => (
-            <View
-            key={index}
-            style={[
-              styles.message,
-              msg.role === 'user' ? styles.userMessage : styles.botMessage,
-              isDarkMode && (msg.role === 'user' ? styles.darkUserMessage : styles.darkBotMessage)
-            ]}
-          >
-            <Text
-              style={[
-                {
-                  color: isDarkMode 
-                    ? 'white'                             // Dark mode: both texts white
-                    : msg.role === 'user' 
-                      ? 'white'                          // Light mode: user text white
-                      : 'black'                          // Light mode: bot text black
-                },
-                styles.languageText,
-                isDarkMode && styles.darkText
-              ]}
-            >
-              {msg.content}
-            </Text>
-          </View>
-          
-
-          
-          ))}
           {isTyping && (
             <View style={styles.typingIndicator}>
               <Animatable.Text animation="pulse" iterationCount="infinite" duration={500} style={styles.dot}>
@@ -635,8 +626,8 @@ const ChatbotComponent = ({ navigation, route }) => {
 
               {dailyCredits > 0 ? (
                       <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
-                        <TextInput style={styles.input} value={userInput} onChangeText={setUserInput} placeholder={t('writeAMessage')} 
-                          placeholderTextColor="white"/>
+                        <TextInput style={styles.typeYourMessage} value={userInput} onChangeText={setUserInput} placeholder={t('typeYourMessage')} 
+                          placeholderTextColor="black"/>
                         <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')} >
                           <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
                         </TouchableOpacity>
@@ -660,17 +651,19 @@ const ChatbotComponent = ({ navigation, route }) => {
         {isSideMenuVisible && (
           <View style={styles.sideMenu}>
             <Animated.View style={[styles.leftMenu, isDarkMode && styles.darkLeftMenu, { transform: [{ translateX: sideMenuAnim } ] }]}>
+                <TouchableOpacity onPress={closeSideMenu} style={styles.leftMenuClose}>
+                  <Ionicons name="close-outline" size={35} color={isDarkMode ? "white" : "black"} />
+                </TouchableOpacity>
               <View style={styles.firstColumn}>
-              <Text style={[styles.titleLogo, isDarkMode && styles.darkText]}>AI Bolder</Text>
-              <TouchableOpacity onPress={closeSideMenu}>
-                <Ionicons name="close-outline" size={30} color={isDarkMode ? "white" : "black"} />
-              </TouchableOpacity>
+                <Image source={require('./assets/logoAI.png')} style={{ width: 55, height: 55 }} />
+            
               </View>
               {/* Second Column: + New Chat Button */}
               <View style={[styles.secondColumn, isDarkMode && styles.darksecondColumn]}>
                 <TouchableOpacity onPress={newChat} style={styles.fullButton}>
-                  <Ionicons name="add" size={20}  color={isDarkMode ? "#007acd" : "#41b7ec"} />
                   <Text style={[styles.newChatText, isDarkMode && styles.darkBlueText]} >{t('newChat')}</Text>
+                  <Image source={require('./assets/newChat.png')} style={{ width: 25, height: 25 }} />
+
                 </TouchableOpacity>
               </View>
               {/* Third Column: Ads Box */}
@@ -679,7 +672,7 @@ const ChatbotComponent = ({ navigation, route }) => {
                   <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
                 ) : (
                  
-                  <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+                  <Text style={[styles.noCredits, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
 
                 )}
               </View>
@@ -720,9 +713,7 @@ const ChatbotComponent = ({ navigation, route }) => {
                             <TouchableOpacity onPress={() => deleteChat(item)} style={[styles.floatingButton, isDarkMode && styles.darkFloatingButton]}>
                               <Text style={styles.deleteText}>{t('delete')}</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity onPress={() => clearConversation(item)} style={styles.floatingButton}>
-                              <Text style={styles.clearText}>{t('clear')}</Text>
-                            </TouchableOpacity>
+                           
                           </View>
                         )}
                       </View>
@@ -749,32 +740,31 @@ const ChatbotComponent = ({ navigation, route }) => {
         )}
 
         {/* Ad modal */}
-        <Modal
-          animationType="slide"
-          transparent={true}
-          visible={isAdModalVisible}
-          onRequestClose={toggleAdModal}
-        >
+        <Modal animationType="slide" transparent={true} visible={isAdModalVisible} onRequestClose={toggleAdModal} >
           <View style={styles.adModalBg}>
             <View style={styles.adModalCon}>
-              {/* <Text style={styles.modalText}>{t('adModalContent')}</Text> */}
               <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
                 <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
               </TouchableOpacity>
+
               <View style={styles.adUpperCon}>
-                 
+                 <Image source={require('./assets/robotAd.jpg')} style={{ width: '100%', height: '100%' }} />
               </View>
               
               <View style={styles.adLowerCon}>
-                <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
                 <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
-
+                <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
+                <TouchableOpacity onPress={toggleAdModal} style={styles.watchAdsButton}>
+                  <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                  <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                </TouchableOpacity>
               </View>
 
 
             </View>
           </View>
         </Modal>
+
       </View>
     </TouchableWithoutFeedback>
   );
