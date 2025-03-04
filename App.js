@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
@@ -24,7 +25,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
-
 
 const Stack = createStackNavigator();
 
@@ -632,7 +632,7 @@ const ChatbotComponent = ({ navigation, route }) => {
         {/* typing section */}
         <View style={styles.inputContainer}>
 
- 
+
               {dailyCredits > 0 ? (
                       <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
                         <TextInput style={styles.input} value={userInput} onChangeText={setUserInput} placeholder={t('writeAMessage')} 
@@ -650,12 +650,11 @@ const ChatbotComponent = ({ navigation, route }) => {
 
 
 
- 
 
         </View>
 
 
-        
+
         
         {/* Side Menu */}
         {isSideMenuVisible && (
