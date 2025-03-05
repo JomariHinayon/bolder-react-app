@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
 
 
   message: {
-    padding: 15,
+    padding: 0,
     borderRadius: 8,
     marginVertical: 0,
     color: 'white',
@@ -53,12 +53,18 @@ const styles = StyleSheet.create({
     backgroundColor: 'black', 
     alignSelf: 'flex-end',
     borderRadius: 25,
+    padding: 15,
+    marginRight: 15
+
   
   },
   botMessage: {
-    backgroundColor: 'transparent', 
+    backgroundColor: '', 
     alignSelf: 'flex-start',
-    padding: 25,
+    borderRadius: 25,
+    margin: 0,
+
+    padding: 15,
     flexDiretion: 'column'
   },
   darkUserMessage: {
@@ -76,7 +82,7 @@ const styles = StyleSheet.create({
   },
 
 
-  chatBox: { flex: 1, marginBottom: '', padding: 10 },
+  chatBox: { flex: 1, marginBottom: '', padding: 10, gap: 5 },
   firstColumn: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -130,7 +136,7 @@ const styles = StyleSheet.create({
     textAlign: 'center'
 
   },
-  noCreds:{
+  noCredits:{
     fontSize: 14,
     marginLeft: 10,
     fontWeight: 'bold',
@@ -274,14 +280,15 @@ const styles = StyleSheet.create({
   sendBtn: {backgroundColor: 'black', padding: 5, width: 50, height: 50, borderRadius: 25,  justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   darkTypeCon: { backgroundColor: '#007acd' },
   darkNoTypeCon: { backgroundColor: '#3f3f42', color: 'red', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
-  noTypeCon: {  borderTopEndRadius:7,
+  noTypeCon: { 
+    borderTopEndRadius:7,
     borderBottomStartRadius:9,
     borderBottomEndRadius:7, 
     borderLeftWidth:2,
     borderBottomWidth:2, 
     borderColor:"rgba(0, 0, 0, 0.34)",
     flexDirection: 'row',
-    backgroundColor: '#03a1e7', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
+    backgroundColor: 'black', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   watchAdsText: {color: 'red', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
   darkWatchAdsText: {color: 'red'},
   watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},

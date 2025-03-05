@@ -1,14 +1,14 @@
 {
   "expo": {
-    "name": "newBolder",
-    "slug": "newBolder",
+    "name": "AI Chat",
+    "slug": "AIChat",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/logoBolder.png",
+    "icon": "./assets/logoAI.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "splash": {
-      "image": "./assets/logoBolder.png",
+      "image": "./assets/logoAI.png",
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
@@ -17,7 +17,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/logoBolder.png",
+        "foregroundImage": "./assets/logoAI.png",
         "backgroundColor": "#ffffff"
       },
       "package": "com.tamaki404.newBolder"
