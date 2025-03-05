@@ -45,7 +45,7 @@ const resources = {
       newConversation: "New Conversation",
       darkMode: "Dark Mode",
       about: "About",
-      accumulatedSpace: "This is your accumulated chat history space.",
+      accumulatedSpace: "Your accumulated chat history space.",
       settings: "Settings",
       newChat: "Start New Chat",
       availableCredits: "Available Credits",

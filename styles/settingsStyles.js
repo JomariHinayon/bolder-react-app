@@ -129,12 +129,15 @@ const styles = StyleSheet.create({
       fontWeight: 'bold'
     },
     cacheText:{
-      fontSize: 15,
+      fontSize: 16,
+      color: 'gray',
+      textAlign: 'center',
       fontWeight: 'normal'
     },
     deleteAllText:{
       fontSize: 15,
-      color: 'white'
+      color: 'white',
+      fontWeight: 'bold'
     },
     darkDropdownContent:{
 

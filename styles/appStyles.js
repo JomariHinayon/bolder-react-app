@@ -47,6 +47,7 @@ const styles = StyleSheet.create({
     marginVertical: 0,
     color: 'white',
 
+
   },
   userMessage: {
     backgroundColor: 'black', 
@@ -67,7 +68,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#3f3f42', 
   },
   languageText: {
-    fontSize: 15,
+    fontSize: 17,
     marginTop: 5
   },
   darkText: {
@@ -75,7 +76,7 @@ const styles = StyleSheet.create({
   },
 
 
-  chatBox: { flex: 1, marginBottom: '4%', padding: 10 },
+  chatBox: { flex: 1, marginBottom: '', padding: 10 },
   firstColumn: {
     flexDirection: 'row',
     justifyContent: 'center',
@@ -268,7 +269,7 @@ const styles = StyleSheet.create({
     borderColor: '#2d2c2e',
   },
   message: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%' },
-  inputContainer: { flexDirection: 'row', padding: 15, alignItems: 'center', height: '13%', backgroundColor: ''},
+  inputContainer: { justifyContent:'center', flexDirection: 'row', padding: 17, alignItems: 'center', height: '11%', backgroundColor: ''},
   typeCon: { backgroundColor: '#f2f2f5', justifyContent: 'space-between', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60,  borderRadius: 35, },
   sendBtn: {backgroundColor: 'black', padding: 5, width: 50, height: 50, borderRadius: 25,  justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   darkTypeCon: { backgroundColor: '#007acd' },
@@ -285,7 +286,7 @@ const styles = StyleSheet.create({
   darkWatchAdsText: {color: 'red'},
   watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
-  typeYourMessage: {color: 'black', fontSize: 15, backgroundColor: 'transparent', width: '80%', marginLeft: 15},
+  typeYourMessage: {color: 'black', fontSize: 17, backgroundColor: 'transparent', width: '80%', marginLeft: 15},
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row',  justifyContent: 'space-between', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 15, width: '100%', borderEndColor: 'black' , borderBottomColor: '#f2f2f5', borderBottomWidth: 1},
   adBtn: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 15,justifyContent: 'center', alignItems:'center', backgroundColor: 'black', height: 45, padding: 0, gap: 5, width: '40%'},
@@ -322,6 +323,26 @@ const styles = StyleSheet.create({
   pastChatItem: { padding: 10, fontSize: 16,  borderBottomColor: '#ccc' },
   deleteButtonContainer: { padding: 5, backgroundColor: 'red', borderRadius: 5 },
   typingIndicator: { padding: '4%', marginVertical: '2%', borderRadius: 10, maxWidth: '85%', alignSelf: 'flex-start', backgroundColor: '#e0e0e0' },
+  scrollToTopButton:{
+    position: 'absolute',
+    bottom: 85,
+    backgroundColor: 'black',
+    borderRadius: 5,
+    justifySelf: 'center',
+    alignSelf: 'center',
+    width: 40,
+    height: 40,
+    borderRadius: 25,
+    borderWidth: 1,
+    borderColor: 'black',
+    justifyContent:'center',
+    alignItems: 'center',
+
+
+  },
+
+  
+  
   loadMoreButton: {
     backgroundColor: '',
     padding: 10,

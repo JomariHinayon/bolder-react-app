@@ -50,6 +50,7 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [isAdModalVisible, setIsAdModalVisible] = useState(false);
   const [messageCount, setMessageCount] = useState(0);
   const [dailyCredits, setDailyCredits] = useState(10); 
+  const [showScrollDownButton, setShowScrollDownButton] = useState(false);
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -181,6 +182,13 @@ const ChatbotComponent = ({ navigation, route }) => {
         setOlderMessages(parsedMessages.slice(0, -10));
         setShowLoadMore(parsedMessages.length > 10);
         setChatTitle(title);
+
+        // Scroll to the bottom after loading chat history
+        setTimeout(() => {
+          if (scrollViewRef.current) {
+            scrollViewRef.current.scrollToEnd({ animated: true });
+          }
+        }, 100); // Delay to ensure messages are rendered before scrolling
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -525,6 +533,18 @@ const ChatbotComponent = ({ navigation, route }) => {
     setIsAdModalVisible(!isAdModalVisible);
   };
 
+  const scrollToTop = () => {
+    if (scrollViewRef.current) {
+      scrollViewRef.current.scrollTo({ y: 0, animated: true });
+    }
+  };
+
+  const handleScroll = (event) => {
+    const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
+    const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
+    setShowScrollDownButton(!isAtBottom);
+  };
+
   return (
     <TouchableWithoutFeedback
       onPress={() => {
@@ -554,7 +574,16 @@ const ChatbotComponent = ({ navigation, route }) => {
           style={styles.chatBox}
           contentContainerStyle={{ paddingBottom: 20 }}
           ref={scrollViewRef}
+          onScroll={handleScroll}
+          scrollEventThrottle={16}
         >
+
+        {/* load more */}
+        {showLoadMore && (
+          <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
+            <Text style={[styles.loadMoreText, isDarkMode && styles.darkBlueText]}>{t('seeMoreMessages')}</Text> 
+          </TouchableOpacity>
+        )}
 
         {/* Intro message */}
         {messages.length === 1 && messages[0].content === 'intro' ? (
@@ -598,13 +627,6 @@ const ChatbotComponent = ({ navigation, route }) => {
           ))
         )}
 
-          {/* load more */}
-          {showLoadMore && (
-            <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-              <Text style={[styles.loadMoreText, isDarkMode && styles.darkBlueText]}>{t('seeMoreMessages')}</Text> 
-            </TouchableOpacity>
-          )}
-
           {isTyping && (
             <View style={styles.typingIndicator}>
               <Animatable.Text animation="pulse" iterationCount="infinite" duration={500} style={styles.dot}>
@@ -618,11 +640,19 @@ const ChatbotComponent = ({ navigation, route }) => {
               </Animatable.Text>
             </View>
           )}
+
         </ScrollView>
+
+
+        {/* Add button to scroll down to the latest message */}
+        {showScrollDownButton && (
+          <TouchableOpacity style={styles.scrollToTopButton} onPress={() => scrollViewRef.current.scrollToEnd({ animated: true })}>
+            <Ionicons name="arrow-down-outline" size={27} color={"white"} />
+          </TouchableOpacity>
+        )}
 
         {/* typing section */}
         <View style={styles.inputContainer}>
-
 
               {dailyCredits > 0 ? (
                       <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
