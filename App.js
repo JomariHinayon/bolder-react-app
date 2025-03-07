@@ -167,8 +167,22 @@ const ChatbotComponent = ({ navigation, route }) => {
   // Save chat history to AsyncStorage
   const saveChatHistory = async (chatHistory, title) => {
     try {
-      await AsyncStorage.setItem(`chatHistory_${title}`, JSON.stringify(chatHistory));
-      await savePastChat(title); 
+      if (title !== t('chatTitle')) { // Only save if the title is not the default one
+        await AsyncStorage.setItem(`chatHistory_${title}`, JSON.stringify(chatHistory));
+        await savePastChat(title);
+      }
+
+      // Remove previous chat with no title
+      if (title !== t('chatTitle')) {
+        const storedPastChats = await AsyncStorage.getItem('pastChats');
+        const pastChatsArray = storedPastChats ? JSON.parse(storedPastChats) : [];
+        const noTitleIndex = pastChatsArray.indexOf(t('chatTitle'));
+        if (noTitleIndex !== -1) {
+          pastChatsArray.splice(noTitleIndex, 1);
+          await AsyncStorage.setItem('pastChats', JSON.stringify(pastChatsArray));
+          await AsyncStorage.removeItem(`chatHistory_${t('chatTitle')}`);
+        }
+      }
     } catch (error) {
       console.error('Error saving chat history:', error);
     }
@@ -341,9 +355,10 @@ const ChatbotComponent = ({ navigation, route }) => {
       if (messages.length === 1) {
         const generatedTitle = await generateChatTitle(userInput);
         setChatTitle(generatedTitle);
+        await saveChatHistory(updatedMessages, generatedTitle); // Save with the new title
+      } else {
+        await saveChatHistory(updatedMessages, chatTitle); // Save with the existing title
       }
-  
-      await saveChatHistory(updatedMessages, chatTitle);
     } catch (error) {
       console.error('Error:', error.response?.data || error.message);
       const errorMessages = [...newMessages, { role: 'assistant', content: t('errorMessage') }];
