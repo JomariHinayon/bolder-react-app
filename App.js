@@ -467,19 +467,7 @@ const ChatbotComponent = ({ navigation, route }) => {
     }
   };
 
-  // Clear the current conversation
-  const clearConversation = async () => {
-    try {
-      await AsyncStorage.removeItem(`chatHistory_${chatTitle}`);
-      const updatedPastChats = pastChats.filter((chat) => chat !== chatTitle);
-      await AsyncStorage.setItem('pastChats', JSON.stringify(updatedPastChats));
-      setPastChats(updatedPastChats);
-      setMessages([{ role: 'assistant', content: t('welcome') }]); 
-      setChatTitle(t('chatTitle')); 
-    } catch (error) {
-      console.error('Error clearing conversation:', error);
-    }
-  };
+
 
 
   // Delete all chats
