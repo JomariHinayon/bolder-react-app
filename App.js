@@ -21,7 +21,6 @@ import { Ionicons } from '@expo/vector-icons';
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from "@env";
-
 import { useTranslation, I18nextProvider } from 'react-i18next'; 
 import i18n from './i18n'; 
 import { NavigationContainer } from '@react-navigation/native';
@@ -30,13 +29,27 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
-import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
 
 
 const Stack = createStackNavigator();
 
 // Banner ID
-const adBannerID = "ca-app-pub-3963804402374453/1773458116";
+const adBannerID = Platform.OS === "ios" 
+  ? "ca-app-pub-1566921124634242/4140353735" // ios banner id
+  : "ca-app-pub-3963804402374453/1773458116";   // android banner ID
+
+const rewardedAdUnitId = Platform.OS === "ios"
+  ? "ca-app-pub-1566921124634242/2816497928" // ios rewarded id
+  : "ca-app-pub-3963804402374453/7426090100"; // android rewarded id
+
+
+const rewardedAd = RewardedAd.createForAdRequest(rewardedAdUnitId, {
+  requestNonPersonalizedAdsOnly: true,
+  networkExtras: {
+    collapsible: "bottom",
+  }
+});
 
 const ChatbotComponent = ({ navigation, route }) => {
   const { t, i18n } = useTranslation(); 
@@ -551,7 +564,28 @@ const ChatbotComponent = ({ navigation, route }) => {
     setIsAdModalVisible(!isAdModalVisible);
   };
 
+  const handleWatchAdsClick = () => {
+    rewardedAd.load();
+    const unsubscribe = rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
+      rewardedAd.show();
+    });
+    rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
+      addCredits(5);
+    });
+    return () => {
+      unsubscribe();
+    };
+  };
 
+  const addCredits = async (amount) => {
+    try {
+      const newCredits = dailyCredits + amount;
+      setDailyCredits(newCredits);
+      await AsyncStorage.setItem('dailyCredits', newCredits.toString());
+    } catch (error) {
+      console.error('Error adding credits:', error);
+    }
+  };
 
   const handleScroll = (event) => {
     const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
@@ -760,7 +794,7 @@ const ChatbotComponent = ({ navigation, route }) => {
                   <View style={styles.adLowerCon}>
                     <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
                     <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
-                    <TouchableOpacity onPress={toggleAdModal} style={styles.watchAdsButton}>
+                    <TouchableOpacity onPress={handleWatchAdsClick} id='watchAdsBtn' style={styles.watchAdsButton}>
                       <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
                       <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
                     </TouchableOpacity>
