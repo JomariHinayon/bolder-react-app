@@ -30,9 +30,13 @@ import { createStackNavigator } from '@react-navigation/stack';
 import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
-import { BannerAd, TestIds, BannerAdSize } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize } from 'react-native-google-mobile-ads';
+
 
 const Stack = createStackNavigator();
+
+// Banner ID
+const adBannerID = "ca-app-pub-3963804402374453/1773458116";
 
 const ChatbotComponent = ({ navigation, route }) => {
   const { t, i18n } = useTranslation(); 
@@ -208,7 +212,7 @@ const ChatbotComponent = ({ navigation, route }) => {
           if (scrollViewRef.current) {
             scrollViewRef.current.scrollToEnd({ animated: true });
           }
-        }, 100); // Delay to ensure messages are rendered before scrolling
+        }, 100);
       }
     } catch (error) {
       console.error('Error loading chat history:', error);
@@ -767,7 +771,7 @@ const ChatbotComponent = ({ navigation, route }) => {
           </View>
         </TouchableWithoutFeedback>
         <BannerAd
-          unitId={TestIds.BANNER}
+          unitId={adBannerID}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
           requestOptions={{
             requestNonPersonalizedAdsOnly: true,

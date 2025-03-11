@@ -299,7 +299,7 @@ const styles = StyleSheet.create({
   adBtn: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 15,justifyContent: 'center', alignItems:'center', backgroundColor: 'black', height: 45, padding: 0, gap: 5, width: '40%'},
   getRewardsText: {color: 'white',  fontWeight: 'bold', fontSize: 14},
   chatTitle: { fontSize: 13, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
-  sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',  marginTop: '12%', zIndex: 1000, height: '100%' },
+  sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',   zIndex: 1000, height: '100%' },
   darkLeftMenu:{ backgroundColor: '#2d2c2e' },
   darkRightMenu:{  backgroundColor: 'rgba(27, 26, 26, 0.8)' },
 
