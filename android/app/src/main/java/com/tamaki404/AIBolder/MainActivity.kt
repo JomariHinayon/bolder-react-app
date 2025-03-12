@@ -1,4 +1,4 @@
-package com.tamaki404.newAdmobb
+package com.tamaki404.AIBolder
 
 import android.os.Build
 import android.os.Bundle

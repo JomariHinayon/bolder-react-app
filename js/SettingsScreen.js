@@ -3,7 +3,7 @@ import { View, Button, StyleSheet, Modal, TouchableOpacity, Text, Alert, Switch,
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
-import styles from './styles/settingsStyles';
+import styles from '../styles/settingsStyles';
 
 const SettingsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
@@ -141,6 +141,10 @@ const SettingsScreen = ({ navigation }) => {
     setIsAboutDropdownVisible(!isAboutDropdownVisible);
   };
 
+  const openAdPreferences = () => {
+    navigation.navigate('AdPreferences');
+  };
+
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* dark mode */}
@@ -173,16 +177,17 @@ const SettingsScreen = ({ navigation }) => {
         </TouchableOpacity>
       </View>
 
-            {/* ad preference */}
-       <TouchableOpacity onPress={toggleAboutDropdown} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
+      {/* Ad Preference */}
+      <TouchableOpacity onPress={openAdPreferences} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }} >
-            <Image source={require('./assets/ad-icon.png')} style={{ width: 90, height: 90, marginBottom:5, borderRadius: 15}} />
-
+            <Ionicons name="megaphone-outline" size={25}></Ionicons>
             <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('adPref')}</Text>
           </View>
-          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name={isAboutDropdownVisible ? "chevron-up-sharp" : "chevron-down-sharp"} />
+          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="open-outline" />
       </TouchableOpacity>
+     
 
+      
       {/* about */}
       <TouchableOpacity onPress={toggleAboutDropdown} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
           <View style={{ flexDirection: 'row', alignItems: 'center' }} >
@@ -193,12 +198,13 @@ const SettingsScreen = ({ navigation }) => {
       </TouchableOpacity>
       {isAboutDropdownVisible && (
         <View style={[styles.dropdownContent, isDarkMode && styles.darkDropdownContent]}>
-          <Image source={require('./assets/logoAI.png')} style={{ width: 90, height: 90, marginBottom:5, borderRadius: 15}} />
+          <Image source={require('../assets/logoAI.png')} style={{ width: 90, height: 90, marginBottom:5, borderRadius: 15}} />
           <Text style={[styles.dropDownBoldText, isDarkMode && styles.darkText]}>{t('AIChatVer')}</Text>
           <Text style={[styles.dropdownText, isDarkMode && styles.darkText]}>{t('© 2025')}</Text>
 
         </View>
       )}
+
 
       {/* select language modal */}
       <Modal visible={isLanguageModalVisible} transparent={true} animationType="slide" onRequestClose={closeLanguageModal}>

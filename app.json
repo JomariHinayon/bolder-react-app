@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "newAdmobb",
-    "slug": "newAdmobb",
+    "name": "AI Bolder",
+    "slug": "AI Bolder",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logoAI_square.png",
@@ -17,10 +17,10 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
+        "foregroundImage": "./assets/logoAI_square.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tamaki404.newAdmobb"
+      "package": "com.tamaki404.AIBolder"
     },
     "web": {
       "favicon": "./assets/favicon.png"

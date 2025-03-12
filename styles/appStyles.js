@@ -290,6 +290,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: 'black', justifyContent: 'center', gap: '10', alignItems: 'center', flexDirection: 'row', padding: 5, flex:1, height: 60, marginBottom: 20, borderRadius: 10,  borderTopStartRadius:7},
   watchAdsText: {color: 'red', textAlign: 'center', fontSize: 15, fontWeight: 'bold'},
+  watchAdsHour: {textAlign: 'center', color: 'red', fontSize: 15, margin: 3, fontWeight: 'bold'},
+  disabledButtonAd: {},
   darkWatchAdsText: {color: 'red'},
   watchAdButton: {backgroundColor: 'pink', justifySelf: 'center', alignSelf: 'center', height:40, padding: 5, borderRadius: 5, marginBottom: 5, width: 200, justifyContent: 'center', alignItems: 'center', borderBottomWidth: 1, borderBottomColor: '#ccc'},
   input: { backgroundColor: 'transparent', color: 'white', borderRadius: 10, width: 320, padding: 10 },
@@ -436,6 +438,18 @@ const styles = StyleSheet.create({
     margin:5
 
   },
+  adWatchCount: {
+    position: 'absolute',
+    left: 10,
+    top: 10,
+    elevate: 10,
+    zIndex: 10,
+    color: 'white',
+    margin:10,
+    fontSize: 15
+
+  },
+
   closeButtonText:{
     color: 'white',
 
@@ -460,6 +474,16 @@ const styles = StyleSheet.create({
   },
   watchAdsButton:{
     backgroundColor: 'black',
+    padding: 20,
+    borderRadius: 40,
+    width: '90%',
+    justifyContent: 'center',
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 5
+  },
+  disabledWatchAdsButton: {
+    backgroundColor: 'grey',
     padding: 20,
     borderRadius: 40,
     width: '90%',

@@ -1,48 +1,28 @@
 import { StatusBar } from 'expo-status-bar';
 import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Animated,
-  Dimensions,
-  FlatList,
-  TouchableWithoutFeedback,
-  Alert,
-  Modal,
-  KeyboardAvoidingView,
-  Platform,
-  StyleSheet
-} from 'react-native';
+import { View, Text, TextInput,  ScrollView,  TouchableOpacity,  Animated,  Dimensions,  FlatList,
+    TouchableWithoutFeedback,  Alert,  Modal,  KeyboardAvoidingView,  Platform,  Image, Button} from 'react-native';
 import { Ionicons } from '@expo/vector-icons'; 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { REACT_APP_OPENAI_API_KEY } from "@env";
 import { useTranslation, I18nextProvider } from 'react-i18next'; 
-import i18n from './i18n'; 
+import i18n from './src/language/i18n'; 
 import { NavigationContainer } from '@react-navigation/native';
-import SettingsScreen from './SettingsScreen'; 
+import SettingsScreen from './js/SettingsScreen'; 
+import AdPreferences from './js/AdPreferencesScreen';
+
 import { createStackNavigator } from '@react-navigation/stack';
-import { Image } from 'react-native';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
-import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType, TestIds } from 'react-native-google-mobile-ads';
+import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
 
+import { adBannerID, rewardedAdUnitId } from './src/constants/adUnits'; 
+import { addCredits } from './src/constants/addCredits';
+import { toggleSideMenu, openSideMenu, closeSideMenu } from './src/utils/sideMenuUtils';
 
 const Stack = createStackNavigator();
-
-// Banner ID
-const adBannerID = Platform.OS === "ios" 
-  ? "ca-app-pub-1566921124634242/4140353735" // ios banner id
-  : "ca-app-pub-3963804402374453/1773458116";   // android banner ID
-
-const rewardedAdUnitId = Platform.OS === "ios"
-  ? "ca-app-pub-1566921124634242/2816497928" // ios rewarded id
-  : "ca-app-pub-3963804402374453/7426090100"; // android rewarded id
-
 
 const rewardedAd = RewardedAd.createForAdRequest(rewardedAdUnitId, {
   requestNonPersonalizedAdsOnly: true,
@@ -74,6 +54,9 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [messageCount, setMessageCount] = useState(0);
   const [dailyCredits, setDailyCredits] = useState(10); 
   const [showScrollDownButton, setShowScrollDownButton] = useState(false);
+  const [adWatchCount, setAdWatchCount] = useState(0);
+  const [lastAdWatchTime, setLastAdWatchTime] = useState(null);
+  const [buttonText, setButtonText] = useState('Watch Ad');
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -91,6 +74,7 @@ const ChatbotComponent = ({ navigation, route }) => {
     loadSettings();
     loadMessageCount();
     loadDailyCredits();
+    loadAdWatchData();
   }, []);
 
   useEffect(() => {
@@ -153,7 +137,7 @@ const ChatbotComponent = ({ navigation, route }) => {
       const lastReset = await AsyncStorage.getItem('lastReset');
       const now = new Date();
 
-      if (storedCredits && lastReset) {
+      if (lastReset) {
         const lastResetDate = new Date(lastReset);
         if (now.getDate() !== lastResetDate.getDate()) {
           // Reset credits if the date has changed
@@ -161,7 +145,7 @@ const ChatbotComponent = ({ navigation, route }) => {
           await AsyncStorage.setItem('dailyCredits', '10');
           await AsyncStorage.setItem('lastReset', now.toISOString());
         } else {
-          setDailyCredits(parseInt(storedCredits, 10));
+          setDailyCredits(parseInt(storedCredits, 10) || 10);
         }
       } else {
         // Initialize credits and last reset date if not set
@@ -423,8 +407,6 @@ const ChatbotComponent = ({ navigation, route }) => {
     ]).start();
   };
   
-  
-
   // Close side menu with animation
   const closeSideMenu = () => {
     setSideMenuButtonText(t('open'));
@@ -520,23 +502,12 @@ const ChatbotComponent = ({ navigation, route }) => {
     );
   };
 
-  // Open language selection modal
-  const openLanguageModal = () => {
-    setIsLanguageModalVisible(true);
-  };
 
-  // Close language selection modal
-  const closeLanguageModal = () => {
-    setIsLanguageModalVisible(false);
-  };
 
   // Handle language selection
   const handleLanguageSelect = async (languageCode) => {
-    // Update the selected language
     i18n.changeLanguage(languageCode);
     setSelectedLanguage(languageCode);
-
-    // Translate all messages in the chat history
     const translatedMessages = await Promise.all(
       messages.map(async (msg) => {
         const translatedContent = await translateText(msg.content, languageCode);
@@ -564,34 +535,89 @@ const ChatbotComponent = ({ navigation, route }) => {
     setIsAdModalVisible(!isAdModalVisible);
   };
 
-  const handleWatchAdsClick = () => {
+  const loadAdWatchData = async () => {
+    try {
+      const storedAdWatchCount = await AsyncStorage.getItem('adWatchCount');
+      const storedLastAdWatchTime = await AsyncStorage.getItem('lastAdWatchTime');
+      if (storedAdWatchCount !== null) {
+        setAdWatchCount(parseInt(storedAdWatchCount, 10));
+      }
+      if (storedLastAdWatchTime !== null) {
+        setLastAdWatchTime(new Date(storedLastAdWatchTime));
+      }
+    } catch (error) {
+      console.error('Error loading ad watch data:', error);
+    }
+  };
+
+  const handleWatchAdsClick = async () => {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+
+    // if (adWatchCount >= 10) {
+    //   Alert.alert(t('adLimitReachedTitle'), t('adLimitReachedMessage'));
+    //   return;
+    // }
+
+    // if (lastAdWatchTime && lastAdWatchTime > oneHourAgo && adWatchCount % 3 === 0) {
+    //   Alert.alert(t('hourlyLimitTitle'), t('hourlyAdLimitReachedMessage'));
+    //   return;
+    // }
+
     rewardedAd.load();
     const unsubscribe = rewardedAd.addAdEventListener(RewardedAdEventType.LOADED, () => {
       rewardedAd.show();
     });
-    rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, () => {
-      addCredits(5);
+    rewardedAd.addAdEventListener(RewardedAdEventType.EARNED_REWARD, async () => {
+      addCredits(5, dailyCredits, setDailyCredits);
+      const newAdWatchCount = adWatchCount + 1;
+      setAdWatchCount(newAdWatchCount);
+      setLastAdWatchTime(now);
+      await AsyncStorage.setItem('adWatchCount', newAdWatchCount.toString());
+      await AsyncStorage.setItem('lastAdWatchTime', now.toISOString());
     });
     return () => {
       unsubscribe();
     };
   };
 
-  const addCredits = async (amount) => {
-    try {
-      const newCredits = dailyCredits + amount;
-      setDailyCredits(newCredits);
-      await AsyncStorage.setItem('dailyCredits', newCredits.toString());
-    } catch (error) {
-      console.error('Error adding credits:', error);
-    }
-  };
+  // Reset ad watch count at midnight
+  useEffect(() => {
+    const resetAdWatchCount = async () => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const timeUntilMidnight = midnight.getTime() - now.getTime();
+
+      setTimeout(async () => {
+        setAdWatchCount(0);
+        await AsyncStorage.setItem('adWatchCount', '0');
+        resetAdWatchCount();
+      }, timeUntilMidnight);
+    };
+
+    resetAdWatchCount();
+  }, []);
+
+  const oneHourAgo = new Date();
+  oneHourAgo.setHours(oneHourAgo.getHours() - 1);
 
   const handleScroll = (event) => {
     const { contentOffset, layoutMeasurement, contentSize } = event.nativeEvent;
     const isAtBottom = layoutMeasurement.height + contentOffset.y >= contentSize.height - 20;
     setShowScrollDownButton(!isAtBottom);
   };
+
+  // useEffect(() => {
+  //   if (adWatchCount >= 10) {
+  //     setButtonText('Watch ad tomorrow');
+  //   } else if (adWatchCount > 0) {
+  //     setButtonText('Come back after an hour to watch ad');
+  //   } else {
+  //     setButtonText('Watch Ad');
+  //   }
+  // }, [adWatchCount]);
+
      
   return (
     <View style={styles.container}>
@@ -610,7 +636,7 @@ const ChatbotComponent = ({ navigation, route }) => {
         >
           <View style={[styles.container, isDarkMode && styles.darkContainer]}>
             <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
-              <TouchableOpacity onPress={toggleSideMenu}>
+              <TouchableOpacity onPress={() => toggleSideMenu(isSideMenuVisible, () => openSideMenu(setIsSideMenuVisible, setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, t), () => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible))}>
                 <Image source={require('./assets/menu.png')} style={{ width: 37, height: 37 }} />
               </TouchableOpacity>
               <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
@@ -713,7 +739,7 @@ const ChatbotComponent = ({ navigation, route }) => {
             {isSideMenuVisible && (
               <View style={styles.sideMenu}>
                 <Animated.View style={[styles.leftMenu, isDarkMode && styles.darkLeftMenu, { transform: [{ translateX: sideMenuAnim } ] }]}>
-                  <TouchableOpacity onPress={closeSideMenu} style={styles.leftMenuClose}>
+                  <TouchableOpacity onPress={() => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible)} style={styles.leftMenuClose}>
                     <Ionicons name="close-outline" size={35} color={isDarkMode ? "white" : "black"} />
                   </TouchableOpacity>
                   <View style={styles.firstColumn}>
@@ -785,25 +811,52 @@ const ChatbotComponent = ({ navigation, route }) => {
             <Modal animationType="slide" transparent={true} visible={isAdModalVisible} onRequestClose={toggleAdModal} >
               <View style={styles.adModalBg}>
                 <View style={styles.adModalCon}>
+                  <Text style={styles.adWatchCount}>Watched Ads: {adWatchCount}/10</Text>
+
                   <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
                     <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
                   </TouchableOpacity>
+
                   <View style={styles.adUpperCon}>
                     <Image source={require('./assets/robotAd.jpg')} style={{ width: '100%', height: '100%' }} />
                   </View>
                   <View style={styles.adLowerCon}>
                     <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
                     <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
-                    <TouchableOpacity onPress={handleWatchAdsClick} id='watchAdsBtn' style={styles.watchAdsButton}>
-                      <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
-                      <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
-                    </TouchableOpacity>
+
+                    {adWatchCount >= 10 ? (
+                      <View>
+                      <TouchableOpacity onPress={handleWatchAdsClick} disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                        <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                        <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                      </TouchableOpacity>
+                      <Text style={styles.watchAdsHour}>{t('tenAdsLimit')}</Text>
+
+                      </View>
+                    ) : lastAdWatchTime && lastAdWatchTime > oneHourAgo && adWatchCount % 3 === 0 ? (
+                      <View>
+                        <TouchableOpacity onPress={handleWatchAdsClick} disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                          <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                          <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.watchAdsHour}>{t('OneHrAdsLimit')}</Text>
+
+                      </View>
+                    ) : (
+                      <TouchableOpacity onPress={handleWatchAdsClick} id='watchAdsBtn' style={styles.watchAdsButton}>
+                        <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                        <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               </View>
             </Modal>
+
           </View>
+
         </TouchableWithoutFeedback>
+
         <BannerAd
           unitId={adBannerID}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
@@ -814,6 +867,7 @@ const ChatbotComponent = ({ navigation, route }) => {
             }
           }}
         />
+
       </KeyboardAvoidingView>
     </View>
   );
@@ -827,6 +881,8 @@ const Chatbot = () => {
         <Stack.Navigator initialRouteName="Chatbot">
           <Stack.Screen name="Chatbot" component={ChatbotComponent} options={{ headerShown: false }} />
           <Stack.Screen name="Settings" component={SettingsScreen} />
+          <Stack.Screen name="AdPreferences" component={AdPreferences} />
+
         </Stack.Navigator>
       </NavigationContainer>
     </I18nextProvider>
