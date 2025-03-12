@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "AI Bolder",
-    "slug": "AI Bolder",
+    "slug": "newAdmobb",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/logoAI_square.png",
@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.tamaki404.AIBolder",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,8 +33,8 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3963804402374453~8298138903",
-          "iosAppId": "ca-app-pub-3963804402374453~4746858393"
+          "androidAppId": "ca-app-pub-1566921124634242~5279273069",
+          "iosAppId": "ca-app-pub-1566921124634242~3905384163"
         }
       ]
     ],
