@@ -14,7 +14,29 @@ const styles = StyleSheet.create({
   darkBlueText:{
     color: '#007acd'
   },
+  rewardMessageContainer: {
+    backgroundColor: 'rgba(0, 0, 0, 0.68)',
+    padding: 10,
+    width: 220,
+    height: 45,
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: 20,
+    position: 'absolute',
+    justifySelf: 'center',
+    alignSelf: 'center',
+    top: 100,
+    flexDirection: 'row',
+    gap: 5,
+    zIndex: 10000,
+    elevate: 10000
 
+  },
+  rewardMessageText: {
+    color: 'white',
+    fontWeight: 'normal',
+    fontSize: 15,
+  },
 
   newChatCon:{
       backgroundColor: 'transparent',

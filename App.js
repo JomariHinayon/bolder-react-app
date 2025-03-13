@@ -57,6 +57,7 @@ const ChatbotComponent = ({ navigation, route }) => {
   const [adWatchCount, setAdWatchCount] = useState(0);
   const [lastAdWatchTime, setLastAdWatchTime] = useState(null);
   const [buttonText, setButtonText] = useState('Watch Ad');
+  const [rewardMessage, setRewardMessage] = useState('');
 
   // Refs and constants
   const sideMenuWidth = Dimensions.get('window').width * 0.75;
@@ -576,11 +577,19 @@ const ChatbotComponent = ({ navigation, route }) => {
       setLastAdWatchTime(now);
       await AsyncStorage.setItem('adWatchCount', newAdWatchCount.toString());
       await AsyncStorage.setItem('lastAdWatchTime', now.toISOString());
+      setIsAdModalVisible(false);
+      setRewardMessage(t('youGotCredits', { credits: 5 }));
+      
+      setTimeout(() => {
+        console.log('Clearing reward message'); 
+        setRewardMessage('');
+      }, 5000);
     });
     return () => {
       unsubscribe();
     };
   };
+  
 
   // Reset ad watch count at midnight
   useEffect(() => {
@@ -655,6 +664,12 @@ const ChatbotComponent = ({ navigation, route }) => {
           }}
         >
           <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+            {rewardMessage !== '' && (
+              <View style={styles.rewardMessageContainer}>
+                <Image source={require('./assets/confetti.png')} style={{ width: 20, height: 20 }} />
+                <Text style={styles.rewardMessageText}>{rewardMessage}</Text>
+              </View>
+            )}
             <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
               <TouchableOpacity onPress={() => toggleSideMenu(isSideMenuVisible, () => openSideMenu(setIsSideMenuVisible, setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, t), () => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible))}>
                 <Image source={require('./assets/menu.png')} style={{ width: 37, height: 37 }} />

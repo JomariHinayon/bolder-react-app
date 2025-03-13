@@ -15,6 +15,7 @@ const resources = {
       japanese: "日本人",
       korean: "한국어",
       thai: "ไทย",
+      youGotCredits: "You got +5 credits!",
 
       hourlyLimitReached: "Watch ad after an hour",
       tenAdsLimit: "Exceeded daily ad watching",
