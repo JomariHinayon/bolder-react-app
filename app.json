@@ -34,10 +34,10 @@
       "favicon": "./assets/favicon.png"
     },
     "plugins": [
-      [
+      [ 
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-3963804402374453~8298138903",
+          "androidAppId": "ca-app-pub-3963804402374453~8298138903", 
           "iosAppId": "ca-app-pub-1566921124634242~3905384163"
         }
       ]

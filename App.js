@@ -75,6 +75,7 @@ const ChatbotComponent = ({ navigation, route }) => {
     loadMessageCount();
     loadDailyCredits();
     loadAdWatchData();
+    refreshAdWatchCount();
   }, []);
 
   useEffect(() => {
@@ -598,6 +599,25 @@ const ChatbotComponent = ({ navigation, route }) => {
 
     resetAdWatchCount();
   }, []);
+
+  const refreshAdWatchCount = async () => {
+    try {
+      const now = new Date();
+      const lastReset = await AsyncStorage.getItem('lastAdWatchReset');
+      if (lastReset) {
+        const lastResetDate = new Date(lastReset);
+        if (now.getTime() - lastResetDate.getTime() >= 24 * 60 * 60 * 1000) {
+          setAdWatchCount(0);
+          await AsyncStorage.setItem('adWatchCount', '0');
+          await AsyncStorage.setItem('lastAdWatchReset', now.toISOString());
+        }
+      } else {
+        await AsyncStorage.setItem('lastAdWatchReset', now.toISOString());
+      }
+    } catch (error) {
+      console.error('Error refreshing ad watch count:', error);
+    }
+  };
 
   const oneHourAgo = new Date();
   oneHourAgo.setHours(oneHourAgo.getHours() - 1);
