@@ -17,6 +17,9 @@
       "bundleIdentifier": "com.tamaki404.AIBolder",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
+      },
+      "runtimeVersion": {
+        "policy": "appVersion"
       }
     },
     "android": {
@@ -24,7 +27,8 @@
         "foregroundImage": "./assets/logoAI_square.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tamaki404.AIBolder"
+      "package": "com.tamaki404.AIBolder",
+      "runtimeVersion": "1.0.0"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -33,7 +37,7 @@
       [
         "react-native-google-mobile-ads",
         {
-          "androidAppId": "ca-app-pub-1566921124634242~5279273069",
+          "androidAppId": "ca-app-pub-3963804402374453~8298138903",
           "iosAppId": "ca-app-pub-1566921124634242~3905384163"
         }
       ]
@@ -42,6 +46,9 @@
       "eas": {
         "projectId": "1da28368-fd6c-4c8f-b636-e90f0b361786"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/1da28368-fd6c-4c8f-b636-e90f0b361786"
     }
   }
 }

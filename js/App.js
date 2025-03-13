@@ -10,10 +10,8 @@ const App = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator initialRouteName="Settings">
-        {/* ...existing code... */}
         <Stack.Screen name="Settings" component={SettingsScreen} />
         <Stack.Screen name="AdPreferences" component={AdPreferencesScreen} />
-        {/* ...existing code... */}
       </Stack.Navigator>
     </NavigationContainer>
   );
