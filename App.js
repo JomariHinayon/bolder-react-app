@@ -833,7 +833,7 @@ const ChatbotComponent = ({ navigation, route }) => {
                   <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
                     <View style={[styles.settings, isDarkMode && styles.darkSettings]}>
                       <Ionicons size={25} color="white" name="settings-outline" />
-                      <Text style={{ marginLeft: 10, color: 'white', size: '14', fontWeight: 'bold' }}>{t('settings')}</Text>
+                      <Text style={{ marginLeft: 10, color: 'white', fontSize: 16, fontWeight: 'bold' }}>{t('settings')}</Text>
                     </View>
                   </TouchableOpacity>
                 </Animated.View>

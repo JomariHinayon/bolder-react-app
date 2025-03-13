@@ -151,7 +151,7 @@ const styles = StyleSheet.create({
   },
   
   adsText: {
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 10,
     fontWeight: 'bold',
     color: 'black',
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
 
   },
   noCredits:{
-    fontSize: 14,
+    fontSize: 16,
     marginLeft: 10,
     fontWeight: 'bold',
     color: 'red',
@@ -291,6 +291,7 @@ const styles = StyleSheet.create({
     backgroundColorOpacity: 0.1,
     position: 'absoulte',
     borderRadius: 10,
+    height: 60
   },
   darkSettings:{
     backgroundColor: '#1e1e1e',
