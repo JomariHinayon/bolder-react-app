@@ -831,7 +831,7 @@ const ChatbotComponent = ({ navigation, route }) => {
             <Modal animationType="slide" transparent={true} visible={isAdModalVisible} onRequestClose={toggleAdModal} >
               <View style={styles.adModalBg}>
                 <View style={styles.adModalCon}>
-                  <Text style={styles.adWatchCount}>Watched Ads: {adWatchCount}/10</Text>
+                  <Text style={styles.adWatchCount}>{t('watchedAds')} {adWatchCount}/10</Text>
 
                   <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
                     <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
@@ -846,16 +846,17 @@ const ChatbotComponent = ({ navigation, route }) => {
 
                     {adWatchCount >= 10 ? (
                       <View>
-                      <TouchableOpacity onPress={handleWatchAdsClick} disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
-                        <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
-                        <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
-                      </TouchableOpacity>
-                      <Text style={styles.watchAdsHour}>{t('tenAdsLimit')}</Text>
-
+                        {/* 10 ads watched for the day */}
+                        <TouchableOpacity  disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                          <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                          <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                        </TouchableOpacity>
+                        <Text style={styles.watchAdsHour}>{t('tenAdsLimit')}</Text>
                       </View>
+                        // 3 ads an hour watched
                     ) : lastAdWatchTime && lastAdWatchTime > oneHourAgo && adWatchCount % 3 === 0 ? (
                       <View>
-                        <TouchableOpacity onPress={handleWatchAdsClick} disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                        <TouchableOpacity disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
                           <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
                           <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
                         </TouchableOpacity>

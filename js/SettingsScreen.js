@@ -148,7 +148,7 @@ const SettingsScreen = ({ navigation }) => {
   return (
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
       {/* dark mode */}
-      <TouchableOpacity style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
+      {/* <TouchableOpacity style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
           <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="moon-outline" />
           <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('darkMode')}</Text>
@@ -158,7 +158,7 @@ const SettingsScreen = ({ navigation }) => {
           value={isDarkMode}
           onValueChange={toggleDarkMode}
         />
-      </TouchableOpacity>
+      </TouchableOpacity> */}
 
       {/* select language */}
       <TouchableOpacity onPress={openLanguageModal} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>

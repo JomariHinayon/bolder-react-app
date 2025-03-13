@@ -2,7 +2,6 @@ import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import SettingsScreen from './SettingsScreen';
 import AdPreferencesScreen from './AdPreferencesScreen';
-// ...existing code...
 
 const Stack = createStackNavigator();
 
