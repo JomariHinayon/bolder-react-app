@@ -170,7 +170,20 @@ const styles = StyleSheet.create({
     dropDownBoldText:{
       fontWeight: 'bold',
       fontSize: 15
-    }
+    },
+
+      modalBackground: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: 'rgba(0,0,0,0.5)' },
+      modalCon: { width: 350, padding: 20, backgroundColor: 'white', borderRadius: 10, alignItems: 'center' },
+      modalTit: { fontSize: 18, fontWeight: 'bold', marginBottom: 5 },
+      modalTxt: { fontSize: 16, marginBottom: 20, textAlign: 'center' },
+      buttonCon: { flexDirection: 'column', gap: 10 },
+      button: { padding: 15, borderRadius: 20, alignItems: 'center' },
+      cancelButton: { backgroundColor: 'gray', width: 300 },
+      deleteButton: { backgroundColor: 'black' },
+      buttonText: { color: 'white', fontSize: 16 },
+      openButton: { backgroundColor: 'black', padding: 10, borderRadius: 5, marginTop: 20 },
+      openButtonText: { color: 'white', fontSize: 16 },
+    
     
   });
   export default styles;

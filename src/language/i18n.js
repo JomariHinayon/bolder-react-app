@@ -25,7 +25,7 @@ const resources = {
       privacyPolicy: "Privacy policy",
       googleAdPolicy: "Google ad policies",
       watchedAds: "Watched Ads: ",
-      adPrefDesc: "Take control of your ads: personalize your experience, reset consent anytime, and review privacy policies",
+      adPrefDesc: "Take control of your ads: personalize your experience and review google policies",
 
       getRewards: "Get rewards ",
       watchAds: "Watch Ad ( +5 credits )",

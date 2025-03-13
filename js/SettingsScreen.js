@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, Modal,Linking, TouchableOpacity, Text, Alert, Switch, ScrollView, Image } from 'react-native';
+import { View, Button, StyleSheet, Modal,Linking, TouchableOpacity, Text, Alert, DevSettings , ScrollView, Image,  } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
@@ -13,6 +13,8 @@ const SettingsScreen = ({ navigation }) => {
   const [cacheSize, setCacheSize] = useState('0 KB');
   const [isDarkMode, setIsDarkMode] = useState(false);
   const [isAboutDropdownVisible, setIsAboutDropdownVisible] = useState(false);
+  const [cacheModalVisible, setCacheModalVisible] = useState(false);
+  const [cacheSuccessModal, setCacheSuccessModal] = useState(false);
 
   const languages = [
     { code: 'en', name: t('english') },
@@ -104,35 +106,20 @@ const SettingsScreen = ({ navigation }) => {
       console.error('Error calculating cache size:', error);
     }
   };
+  const [modalVisible, setModalVisible] = useState(false);
+
   const deleteAllChats = async () => {
-    Alert.alert(
-      t('deleteAllChatsTitle'),
-      t('deleteAllChats'),
-      [
-        {
-          text: t('cancel'),
-          style: 'cancel',
-        },
-        {
-          text: t('delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              const keys = await AsyncStorage.getAllKeys();
-              const chatKeys = keys.filter((key) => key.startsWith('chatHistory_'));
-              await AsyncStorage.multiRemove(chatKeys);
-              await AsyncStorage.removeItem('pastChats');
-              setCacheSize('0 KB');
-              alert(t('deleteAllChatsSuccess'));
-              navigation.navigate('Chatbot'); 
-            } catch (error) {
-              console.error('Error deleting all chats:', error);
-            }
-          },
-        },
-      ],
-      { cancelable: true }
-    );
+    try {
+      const keys = await AsyncStorage.getAllKeys();
+      const chatKeys = keys.filter((key) => key.startsWith('chatHistory_'));
+      await AsyncStorage.multiRemove(chatKeys);
+      await AsyncStorage.removeItem('pastChats');
+      setCacheSize('0 KB');
+      DevSettings.reload();
+      setModalVisible(true);
+    } catch (error) {
+      console.error('Error deleting all chats:', error);
+    }
   };
   useEffect(() => {
     calculateCacheSize();
@@ -146,8 +133,49 @@ const SettingsScreen = ({ navigation }) => {
     navigation.navigate('AdPreferences');
   };
 
+  const clearCache = async () => {
+    try {
+      await AsyncStorage.clear();
+      setCacheSize('0 KB');
+      setCacheModalVisible(false);
+      setCacheSuccessModal(true);
+    } catch (error) {
+      console.error('Error clearing cache:', error);
+    }
+  };
+
   return (
+
+    
     <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+
+     <Modal visible={modalVisible} transparent animationType="fade">
+        <View style={styles.modalBackground}>
+          <View style={styles.modalCon}>
+            <Text style={styles.modalTit}>Delete All Chats?</Text>
+            <Text style={styles.modalTxt}>This action cannot be undone.</Text>
+            <View style={styles.buttonCon}>
+              <TouchableOpacity
+                style={[styles.button, styles.cancelButton]}
+                onPress={() => setModalVisible(false)}
+              >
+                <Text style={styles.buttonText}>Cancel</Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={deleteAllChats}
+              >
+                <Text style={styles.buttonText}>Delete</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+
+
+
+
       {/* dark mode */}
       {/* <TouchableOpacity style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -161,6 +189,7 @@ const SettingsScreen = ({ navigation }) => {
         />
       </TouchableOpacity> */}
 
+
       {/* select language */}
       <TouchableOpacity onPress={openLanguageModal} style={[styles.languageCon, isDarkMode && styles.darkSmCon]}>
         <View style={{ flexDirection: 'row', alignItems: 'center' }}>
@@ -173,7 +202,7 @@ const SettingsScreen = ({ navigation }) => {
         <Text style={[styles.cacheSize, isDarkMode && styles.darkText]}>{cacheSize}</Text>
         <Text style={[styles.cacheText, isDarkMode && styles.darkText]}>
         {t('accumulatedSpace')}        </Text>
-        <TouchableOpacity style={styles.deleteAllBtn} onPress={deleteAllChats}>
+        <TouchableOpacity style={styles.deleteAllBtn} onPress={() => setModalVisible(true)}>
           <Text style={styles.deleteAllText}>{t('clearChatHistory')}</Text> 
         </TouchableOpacity>
       </View>
@@ -272,6 +301,10 @@ const SettingsScreen = ({ navigation }) => {
 
  
   );
+
+  
 };
+
+
 
 export default SettingsScreen;

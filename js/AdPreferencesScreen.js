@@ -8,7 +8,6 @@ import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType } from 'react-n
 import { adBannerID, rewardedAdUnitId } from '../src/constants/adUnits'; 
 import { Ionicons } from '@expo/vector-icons';
 
-
 // Function to load GDPR consent status
 async function loadGDPRPreference() {
   try {
@@ -48,47 +47,20 @@ const AdPreferencesScreen = () => {
     await saveGDPRPreference(newValue);
   };
 
-  // Function to reset ad consent (GDPR)
-  const resetAdConsent = async () => {
-    try {
-      const consentInfo = await requestConsentInfoUpdate();
-      if (consentInfo.isConsentFormAvailable) {
-        const consentStatus = await showConsentForm();
-        if (consentStatus === ConsentStatus.OBTAINED) {
-          console.log('User consent obtained');
-        } else {
-          console.log('User declined consent');
-        }
-      }
-    } catch (error) {
-      console.error('Error resetting ad consent:', error);
-    }
-  };
-
   return (
     <View style={styles.container}>
       <View style={styles.descCon}>
         <Text style={styles.description}>{t('adPrefDesc')}</Text>
       </View>
 
-
-
-
       <View style={styles.switchCon}>
         <Text style={styles.switchText}>{t('enablePersonalized')}</Text>
         <Switch
-          trackColor={{ false: '#767577', true: '#black' }}
+          trackColor={{ false: '#767577', true: 'black' }}
           value={isPersonalized}
           onValueChange={toggleGDPRConsent}
         />
       </View>
-
-      <TouchableOpacity   style={styles.resetButton} onPress={resetAdConsent}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 7 }} >
-            <Ionicons style={styles.icon} name="refresh-outline" />
-            <Text style={styles.resetContent}>{t('resetConsent')}</Text>
-          </View>
-      </TouchableOpacity>
 
 
       <TouchableOpacity style={styles.linkButtons} onPress={() => Linking.openURL('https://policies.google.com/technologies/ads')}>
@@ -99,25 +71,21 @@ const AdPreferencesScreen = () => {
           <Ionicons style={styles.linkIcon} name="open-outline" />
       </TouchableOpacity>
 
-
-
       <View style={styles.bannerAd}>
           <BannerAd
           unitId={adBannerID}
           size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
           requestOptions={{
-            requestNonPersonalizedAdsOnly: true,
+            requestNonPersonalizedAdsOnly: !isPersonalized,
             networkExtras: {
               collapsible: "bottom",
             }
           }}
-         
         />
       </View>
 
     </View>
   );
 };
-
 
 export default AdPreferencesScreen;
