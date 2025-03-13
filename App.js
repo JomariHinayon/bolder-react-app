@@ -17,7 +17,6 @@ import { createStackNavigator } from '@react-navigation/stack';
 import * as Animatable from 'react-native-animatable';
 import styles from './styles/appStyles';
 import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
-
 import { adBannerID, rewardedAdUnitId } from './src/constants/adUnits'; 
 import { addCredits } from './src/constants/addCredits';
 import { toggleSideMenu, openSideMenu, closeSideMenu } from './src/utils/sideMenuUtils';
@@ -911,14 +910,15 @@ const ChatbotComponent = ({ navigation, route }) => {
 
 
 const Chatbot = () => {
+  const { t } = useTranslation(); // Add useTranslation hook
+
   return (
     <I18nextProvider i18n={i18n}>
       <NavigationContainer>
         <Stack.Navigator initialRouteName="Chatbot">
           <Stack.Screen name="Chatbot" component={ChatbotComponent} options={{ headerShown: false }} />
-          <Stack.Screen name="Settings" component={SettingsScreen} />
-          <Stack.Screen name="AdPreferences" component={AdPreferences} />
-
+          <Stack.Screen name="Settings" component={SettingsScreen} options={{ title: t('settings') }} />
+          <Stack.Screen name="AdPreferences" component={AdPreferences} options={{ title: t('adPref') }} />
         </Stack.Navigator>
       </NavigationContainer>
     </I18nextProvider>

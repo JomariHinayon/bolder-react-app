@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { View, Button, StyleSheet, Modal, TouchableOpacity, Text, Alert, Switch, ScrollView, Image } from 'react-native';
+import { View, Button, StyleSheet, Modal,Linking, TouchableOpacity, Text, Alert, Switch, ScrollView, Image } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import styles from '../styles/settingsStyles';
-
+import { BannerAd, BannerAdSize, RewardedAd, RewardedAdEventType } from 'react-native-google-mobile-ads';
+import { adBannerID, rewardedAdUnitId } from '../src/constants/adUnits'; 
 const SettingsScreen = ({ navigation }) => {
   const { t, i18n } = useTranslation();
   const [isLanguageModalVisible, setIsLanguageModalVisible] = useState(false);
@@ -183,8 +184,17 @@ const SettingsScreen = ({ navigation }) => {
             <Ionicons name="megaphone-outline" size={25}></Ionicons>
             <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('adPref')}</Text>
           </View>
-          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="open-outline" />
+          <Ionicons size={25} color={isDarkMode ? "white" : "black"} name="arrow-forward-outline" />
       </TouchableOpacity>
+
+      <TouchableOpacity  style={[styles.languageCon, isDarkMode && styles.darkSmCon]} onPress={() => Linking.openURL('https://www.freeprivacypolicy.com/live/7006e2b4-1355-4da7-9c48-1d40a4423475')}>
+          <View style={{ flexDirection: 'row', alignItems: 'center' }} >
+            <Ionicons size={25} name="home-outline" />
+            <Text style={[styles.languageText, isDarkMode && styles.darkText]}>{t('privacyPolicy')}</Text>
+          </View>
+          <Ionicons  size={25} color={isDarkMode ? "white" : "black"} name="open-outline" />
+      </TouchableOpacity>
+
      
 
       
@@ -243,8 +253,24 @@ const SettingsScreen = ({ navigation }) => {
           </View>
         </View>
       </Modal>
-
+           
+      <View style={styles.bannerAd}>
+          <BannerAd
+          unitId={adBannerID}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          requestOptions={{
+            requestNonPersonalizedAdsOnly: true,
+            networkExtras: {
+              collapsible: "bottom",
+            }
+          }}
+         
+        />
+        </View>
+    
     </View>
+
+ 
   );
 };
 

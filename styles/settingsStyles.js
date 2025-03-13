@@ -1,4 +1,5 @@
 import { StyleSheet } from 'react-native';
+import { BannerAd } from 'react-native-google-mobile-ads';
 
 const styles = StyleSheet.create({
     container: {
@@ -7,11 +8,22 @@ const styles = StyleSheet.create({
       alignItems: 'start',
       backgroundColor: '#f3f3f2',
       gap: 10,
-      flex: 1
+      height: '100%',
+      backgroundColor: '#f3f3f2',
     },
     darkContainer: {
       backgroundColor: '#242425',
     },
+    bannerAd:{
+      display: 'flex',
+      padding: '0',
+      margin: 0,
+      backgroundColor: 'transparent',
+      position: 'absolute',
+      bottom: 0
+
+    },
+
     darkSmCon:{
       backgroundColor: '#3f3f42',
     },

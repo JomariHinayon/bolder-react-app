@@ -16,7 +16,6 @@ const resources = {
       korean: "한국어",
       thai: "ไทย",
       youGotCredits: "You got +5 credits!",
-
       hourlyLimitReached: "Watch ad after an hour",
       tenAdsLimit: "Exceeded daily ad watching",
       OneHrAdsLimit: "Watch ads after an hour",
@@ -26,6 +25,7 @@ const resources = {
       privacyPolicy: "Privacy policy",
       googleAdPolicy: "Google ad policies",
       watchedAds: "Watched Ads: ",
+      adPrefDesc: "Take control of your ads: personalize your experience, reset consent anytime, and review privacy policies",
 
       getRewards: "Get rewards ",
       watchAds: "Watch Ad ( +5 credits )",
@@ -92,7 +92,7 @@ const resources = {
       privacyPolicy: " Política de privacidad",
       googleAdPolicy: " Políticas de anuncios de Google",
       watchedAds: "Anuncios vistos: ",
-
+      adPref: " Preferencias de anuncios",
       hiImYourAIAgent: " Hola, soy tu agente de IA",
       howCanIHelpYouToday: " ¿Cómo puedo ayudarte hoy?",
       getRewards: " ¡Obtén recompensas!",
@@ -221,6 +221,7 @@ const resources = {
       thai: "Thailändisch",
       watchAds: " Anzeige ansehen ( +5 Credits )",
       AIChatVer: " KI-Chat Version 1.0.0",
+      adPref: " Anzeigen-Einstellungen",
 
       hourlyLimitReached: " Anzeigen anschauen nach einer Stunde",
       tenAdsLimit: " Tageslimit der Anzeigen wurde erreicht",
@@ -287,7 +288,7 @@ const resources = {
       thai: "泰语",
       watchAds: " 观看广告（ +5积分 ）",
       AIChatVer: " 人工智能聊天版本 1.0.0",
-
+      adPref: " 广告偏好设置",
       hourlyLimitReached: " 每小时观看广告",
       tenAdsLimit: " 每天观看广告次数已达上限",
       OneHrAdsLimit: " 每小时观看广告",
@@ -353,7 +354,7 @@ const resources = {
       thai: "タイ語", 
       watchAds: " 広告を見る（ +5クレジット ）",
       AIChatVer: " AIチャットバージョン 1.0.0",
-
+      adPref: " 広告偏好設定",
       hourlyLimitReached: " 毎時広告を見る",
       tenAdsLimit: " 毎日広告を見る回数が上限に達しました",
       OneHrAdsLimit: " 毎時広告を見る",
@@ -419,7 +420,7 @@ const resources = {
       arabic: "아랍어",
       watchAds: " 광고보기 ( +5 크레딧 )",
       AIChatVer: " AI 채팅 버전 1.0.0",
-
+      adPref: " 광고 채팅 설정",
       hourlyLimitReached: " 하루 크레딧을 모두 사용했습니다",
       tenAdsLimit: " 하루에 10개의 무료 채팅을 받습니다",
       OneHrAdsLimit: " 하루 크레딧을 모두 사용했습니다",
@@ -487,6 +488,7 @@ const resources = {
       korean: "เกาหลี",
       arabic: "อาหรับ",
       thai: "ไทย",
+      adPref: " การตั้งค่าโฆษณา",
       watchAds: " ดูโฆษณา ( +5 เครดิต )",
       AIChatVer: " เวอร์ชัน 1.0.0 ของการสนทนา AI",
       hiImYourAIAgent: " สวัสดี ฉันเป็นเอเจนต์ AI ของคุณ",
