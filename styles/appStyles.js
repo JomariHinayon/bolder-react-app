@@ -14,6 +14,10 @@ const styles = StyleSheet.create({
   darkBlueText:{
     color: '#007acd'
   },
+  safeAreaView:{
+
+    flex: 1
+  },
   rewardMessageContainer: {
     backgroundColor: 'rgba(0, 0, 0, 0.68)',
     padding: 10,
@@ -541,7 +545,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#333',
     textAlign: 'center',
-  }
+  },
 
 
 

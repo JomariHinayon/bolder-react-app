@@ -1,4 +1,7 @@
 import React, { useState, useEffect } from 'react';
+import { StatusBar } from 'expo-status-bar';
+import { SafeAreaView } from "react-native-safe-area-context";
+
 import { View, Button, StyleSheet, Modal,Linking, TouchableOpacity, Text, Alert, DevSettings , ScrollView, Image,  } from 'react-native';
 import { useTranslation } from 'react-i18next';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -145,9 +148,9 @@ const SettingsScreen = ({ navigation }) => {
   };
 
   return (
-
+      <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+           <StatusBar hidden={false} translucent={true}  backgroundColor="transparent" barStyle="dark-content" style="dark" />
     
-    <View style={[styles.container, isDarkMode && styles.darkContainer]}>
 
      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalBackground}>
@@ -298,7 +301,8 @@ const SettingsScreen = ({ navigation }) => {
         />
         </View>
     
-    </View>
+      </View>
+    
 
  
   );

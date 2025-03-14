@@ -6,10 +6,10 @@ const styles = StyleSheet.create({
       padding: 15,
       justifyContent: 'start',
       alignItems: 'start',
-      backgroundColor: '#f3f3f2',
       gap: 10,
       height: '100%',
       backgroundColor: '#f3f3f2',
+      flex: 1
     },
     darkContainer: {
       backgroundColor: '#242425',
@@ -69,6 +69,10 @@ const styles = StyleSheet.create({
       backgroundColor: 'white',
       borderRadius: 20,
       
+    },
+    safeAreaView:{
+      margin: 0,
+      flex: 1
     },
   
     selectedLanguageItem:{

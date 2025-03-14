@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "AI Bolder",
+    "name": "Chat AI",
     "slug": "newAdmobb",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -27,8 +27,9 @@
         "foregroundImage": "./assets/logoAI_square.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.tamaki404.AIBolder",
-      "runtimeVersion": "1.0.0"
+      "package": "com.example.chatai",
+      "runtimeVersion": "1.0.0",
+      "versionCode": 1
     },
     "web": {
       "favicon": "./assets/favicon.png"

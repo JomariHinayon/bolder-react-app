@@ -3,6 +3,8 @@ import 'react-native-gesture-handler';
 import React, { useState, useEffect, useRef } from 'react';
 import { View, Text, TextInput,  ScrollView,  TouchableOpacity,  Animated,  Dimensions,  FlatList,
     TouchableWithoutFeedback,  Alert,  Modal,  KeyboardAvoidingView,  Platform,  Image, Button} from 'react-native';
+    import { SafeAreaView } from "react-native-safe-area-context";
+
 import { Ionicons } from '@expo/vector-icons'; 
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -65,7 +67,7 @@ const ChatbotComponent = ({ navigation, route }) => {
 
   const scrollViewRef = useRef(null);
 
-
+  console.log('REACT_APP_OPENAI_API_KEY:', REACT_APP_OPENAI_API_KEY);
 
   // Load past chats and language preference on component mount
   useEffect(() => {
@@ -274,7 +276,7 @@ const ChatbotComponent = ({ navigation, route }) => {
         {
           headers: {
             'Content-Type': 'application/json',
-            Authorization: `Bearer ${REACT_APP_OPENAI_API_KEY}`,
+            Authorization: `Bearer ${REACT_APP_OPENAI_API_KEY}`, // Ensure this is correct
           },
         }
       );
@@ -645,266 +647,269 @@ const ChatbotComponent = ({ navigation, route }) => {
   //     setButtonText('Watch Ad');
   //   }
   // }, [adWatchCount]);
-
      
   return (
+    <SafeAreaView style={[styles.safeAreaView, isDarkMode && styles.darkSafeAreaView]}>
     <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 1 : 1}
-      >
-        <TouchableWithoutFeedback
-          onPress={() => {
-            if (deleteButtonVisible) {
-              setDeleteButtonVisible(false);
-              setSelectedChat(null);
-            }
-          }}
+      <StatusBar hidden={false} translucent={true}  backgroundColor="transparent" barStyle="dark-content" style="dark" />
+        <KeyboardAvoidingView
+          style={{ flex: 1 }}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 1 : 1}
         >
-          <View style={[styles.container, isDarkMode && styles.darkContainer]}>
-            {rewardMessage !== '' && (
-              <View style={styles.rewardMessageContainer}>
-                <Image source={require('./assets/confetti.png')} style={{ width: 20, height: 20 }} />
-                <Text style={styles.rewardMessageText}>{rewardMessage}</Text>
+          <TouchableWithoutFeedback
+            onPress={() => {
+              if (deleteButtonVisible) {
+                setDeleteButtonVisible(false);
+                setSelectedChat(null);
+              }
+            }}
+          >
+            <View style={[styles.container, isDarkMode && styles.darkContainer]}>
+              {rewardMessage !== '' && (
+                <View style={styles.rewardMessageContainer}>
+                  <Image source={require('./assets/confetti.png')} style={{ width: 20, height: 20 }} />
+                  <Text style={styles.rewardMessageText}>{rewardMessage}</Text>
+                </View>
+              )}
+              <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
+                <TouchableOpacity onPress={() => toggleSideMenu(isSideMenuVisible, () => openSideMenu(setIsSideMenuVisible, setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, t), () => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible))}>
+                  <Image source={require('./assets/menu.png')} style={{ width: 37, height: 37 }} />
+                </TouchableOpacity>
+                <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
+                  <Text style={styles.getRewardsText}>{t('getRewards')}</Text>
+                  <Image source={require('./assets/gift.png')} style={{ width: 37, height: 37 }} />
+                </TouchableOpacity>
               </View>
-            )}
-            <View style={[styles.upperCon, selectedChat === chatTitle && styles.highlight, isDarkMode && styles.darkUpper]}>
-              <TouchableOpacity onPress={() => toggleSideMenu(isSideMenuVisible, () => openSideMenu(setIsSideMenuVisible, setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, t), () => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible))}>
-                <Image source={require('./assets/menu.png')} style={{ width: 37, height: 37 }} />
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.adBtn} onPress={toggleAdModal}>
-                <Text style={styles.getRewardsText}>{t('getRewards')}</Text>
-                <Image source={require('./assets/gift.png')} style={{ width: 37, height: 37 }} />
-              </TouchableOpacity>
-            </View>
 
-            <ScrollView
-              style={styles.chatBox}
-              contentContainerStyle={{ paddingBottom: 20 }}
-              ref={scrollViewRef}
-              onScroll={handleScroll}
-              scrollEventThrottle={16}
-            >
-              {showLoadMore && (
-                <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
-                  <Text style={[styles.loadMoreText, isDarkMode && styles.darkBlueText]}>{t('seeMoreMessages')}</Text> 
+              <ScrollView
+                style={styles.chatBox}
+                contentContainerStyle={{ paddingBottom: 20 }}
+                ref={scrollViewRef}
+                onScroll={handleScroll}
+                scrollEventThrottle={16}
+              >
+                {showLoadMore && (
+                  <TouchableOpacity style={styles.loadMoreButton} onPress={loadMoreMessages}>
+                    <Text style={[styles.loadMoreText, isDarkMode && styles.darkBlueText]}>{t('seeMoreMessages')}</Text> 
+                  </TouchableOpacity>
+                )}
+
+                {messages.length === 1 && messages[0].content === 'intro' ? (
+                  <View style={styles.newChatCon}>
+                    <Image source={require('./assets/logoAI.png')} style={styles.logoAINew} />
+                    <Text style={styles.hiImYourAIAgent}>{t('hiImYourAIAgent')}</Text>
+                    <Text style={styles.howCanIHelpYouToday}>{t('howCanIHelpYouToday')}</Text>
+                  </View>
+                ) : (
+                  messages.filter((msg, index) => !(index === 0 && msg.role === 'assistant' && msg.content === 'intro')).map((msg, index) => (
+                    <View
+                      key={index}
+                      style={[
+                        styles.message,
+                        msg.role === 'user' ? styles.userMessage : styles.botMessage,
+                        isDarkMode && (msg.role === 'user' ? styles.darkUserMessage : styles.darkBotMessage)
+                      ]}
+                    >
+                      {msg.role === 'assistant' && (
+                        <Image
+                          source={require('./assets/logoAI.png')}
+                          style={{ width: 25, height: 25,}}
+                        />
+                      )}
+                      <Text
+                        style={[
+                          {
+                            color: isDarkMode
+                              ? 'white'
+                              : msg.role === 'user'
+                              ? 'white'
+                              : 'black'
+                          },
+                          styles.languageText,
+                          isDarkMode && styles.darkText
+                        ]}
+                      >
+                        {msg.content}
+                      </Text>
+                    </View>
+                  ))
+                )}
+
+                {isTyping && (
+                  <View style={styles.typingIndicator}>
+                    <Animatable.Text animation="pulse" iterationCount="infinite" duration={500} style={styles.dot}>
+                      .
+                    </Animatable.Text>
+                    <Animatable.Text animation="pulse" iterationCount="infinite" delay={100} duration={500} style={styles.dot}>
+                      .
+                    </Animatable.Text>
+                    <Animatable.Text animation="pulse" iterationCount="infinite" delay={200} duration={500} style={styles.dot}>
+                      .
+                    </Animatable.Text>
+                  </View>
+                )}
+              </ScrollView>
+
+              {showScrollDownButton && (
+                <TouchableOpacity style={styles.scrollToTopButton} onPress={() => scrollViewRef.current.scrollToEnd({ animated: true })}>
+                  <Ionicons name="arrow-down-outline" size={27} color={"white"} />
                 </TouchableOpacity>
               )}
 
-              {messages.length === 1 && messages[0].content === 'intro' ? (
-                <View style={styles.newChatCon}>
-                  <Image source={require('./assets/logoAI.png')} style={styles.logoAINew} />
-                  <Text style={styles.hiImYourAIAgent}>{t('hiImYourAIAgent')}</Text>
-                  <Text style={styles.howCanIHelpYouToday}>{t('howCanIHelpYouToday')}</Text>
+              <View style={styles.inputContainer}>
+                {dailyCredits > 0 ? (
+                  <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
+                    <TextInput style={styles.typeYourMessage} value={userInput} onChangeText={setUserInput} placeholder={t('typeYourMessage')} 
+                      placeholderTextColor="black"/>
+                    <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')} >
+                      <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
+                    </TouchableOpacity>
+                  </View>             
+                ) : (
+                  <TouchableOpacity style={[styles.noTypeCon,  isDarkMode && styles.darkNoTypeCon]} onPress={toggleAdModal}>
+                    <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('lowCredits')}</Text>
+                  </TouchableOpacity>   
+                )}
+              </View>
+
+              {isSideMenuVisible && (
+                <View style={styles.sideMenu}>
+                  <Animated.View style={[styles.leftMenu, isDarkMode && styles.darkLeftMenu, { transform: [{ translateX: sideMenuAnim } ] }]}>
+                    <TouchableOpacity onPress={() => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible)} style={styles.leftMenuClose}>
+                      <Ionicons name="close-outline" size={35} color={isDarkMode ? "white" : "black"} />
+                    </TouchableOpacity>
+                    <View style={styles.firstColumn}>
+                      <Image source={require('./assets/logoAI.png')} style={{ width: 55, height: 55 }} />
+                    </View>
+                    <View style={[styles.secondColumn, isDarkMode && styles.darksecondColumn]}>
+                      <TouchableOpacity onPress={newChat} style={styles.fullButton}>
+                        <Text style={[styles.newChatText, isDarkMode && styles.darkBlueText]} >{t('newChat')}</Text>
+                        <Image source={require('./assets/newChat.png')} style={{ width: 25, height: 25 }} />
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.adsBox}>
+                      {dailyCredits > 0 ? (
+                        <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
+                      ) : (
+                        <Text style={[styles.noCredits, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
+                      )}
+                    </View>
+                    <View style={[styles.chatHistory, isDarkMode && styles.darkChatHistory]}>
+                      <Ionicons name="chatbox-ellipses-outline" size={20} color={isDarkMode ? "white" : "black"} />
+                      <Text style={[styles.chatHistoryTitle, isDarkMode && styles.darkText]}>{t('chatHistory')}</Text>
+                    </View>
+                    <FlatList
+                      data={pastChats}
+                      keyExtractor={(item) => item}
+                      renderItem={({ item }) => (
+                        <TouchableOpacity
+                          onPress={() => loadChat(item)}
+                          onLongPress={() => handleLongPress(item)}
+                          style={styles.chatItemContainer} >
+                          <View style={styles.chatContent}>
+                            <View style={styles.row}>
+                              <Text
+                                style={[styles.pastChatItem, isDarkMode && styles.darkText, selectedChat === item && styles.highlightChatItem]}
+                              >
+                                {item}
+                              </Text>
+                              <View style={[styles.ellipsisContainer, isDarkMode && styles.darkEllipsisContainer]}>
+                                <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
+                                  <Ionicons name="ellipsis-vertical" size={20} color="#555" />
+                                </TouchableOpacity>
+                              </View>
+                            </View>
+                            {selectedChat === item && deleteButtonVisible && (
+                              <View style={[styles.floatingMenu, isDarkMode && styles.darkFloatingMenu]}>
+                                <TouchableOpacity onPress={() => deleteChat(item)} style={[styles.floatingButton, isDarkMode && styles.darkFloatingButton]}>
+                                  <Text style={styles.deleteText}>{t('delete')}</Text>
+                                </TouchableOpacity>
+                              </View>
+                            )}
+                          </View>
+                        </TouchableOpacity>
+                      )}
+                      contentContainerStyle={{ padding: 5 }}
+                      style={{ maxHeight: '78%' }}
+                    />
+                    <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
+                      <View style={[styles.settings, isDarkMode && styles.darkSettings]}>
+                        <Ionicons size={25} color="white" name="settings-outline" />
+                        <Text style={{ marginLeft: 10, color: 'white', fontSize: 16, fontWeight: 'bold' }}>{t('settings')}</Text>
+                      </View>
+                    </TouchableOpacity>
+                  </Animated.View>
+                  <Animated.View style={[styles.rightMenu, isDarkMode && styles.darkRightMenu, { opacity: rightMenuOpacity }]}>
+                  </Animated.View>
                 </View>
-              ) : (
-                messages.filter((msg, index) => !(index === 0 && msg.role === 'assistant' && msg.content === 'intro')).map((msg, index) => (
-                  <View
-                    key={index}
-                    style={[
-                      styles.message,
-                      msg.role === 'user' ? styles.userMessage : styles.botMessage,
-                      isDarkMode && (msg.role === 'user' ? styles.darkUserMessage : styles.darkBotMessage)
-                    ]}
-                  >
-                    {msg.role === 'assistant' && (
-                      <Image
-                        source={require('./assets/logoAI.png')}
-                        style={{ width: 25, height: 25,}}
-                      />
-                    )}
-                    <Text
-                      style={[
-                        {
-                          color: isDarkMode
-                            ? 'white'
-                            : msg.role === 'user'
-                            ? 'white'
-                            : 'black'
-                        },
-                        styles.languageText,
-                        isDarkMode && styles.darkText
-                      ]}
-                    >
-                      {msg.content}
-                    </Text>
+              )}
+
+              <Modal animationType="slide" transparent={true} visible={isAdModalVisible} onRequestClose={toggleAdModal} >
+                <View style={styles.adModalBg}>
+                  <View style={styles.adModalCon}>
+                    <Text style={styles.adWatchCount}>{t('watchedAds')} {adWatchCount}/10</Text>
+
+                    <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
+                      <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
+                    </TouchableOpacity>
+
+                    <View style={styles.adUpperCon}>
+                      <Image source={require('./assets/robotAd.jpg')} style={{ width: '100%', height: '100%' }} />
+                    </View>
+                    <View style={styles.adLowerCon}>
+                      <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
+                      <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
+
+                      {adWatchCount >= 10 ? (
+                        <View>
+                          {/* 10 ads watched for the day */}
+                          <TouchableOpacity  disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                            <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                            <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.watchAdsHour}>{t('tenAdsLimit')}</Text>
+                        </View>
+                          // 3 ads an hour watched
+                      ) : lastAdWatchTime && lastAdWatchTime > oneHourAgo && adWatchCount % 3 === 0 ? (
+                        <View>
+                          <TouchableOpacity disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
+                            <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                            <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                          </TouchableOpacity>
+                          <Text style={styles.watchAdsHour}>{t('OneHrAdsLimit')}</Text>
+
+                        </View>
+                      ) : (
+                        <TouchableOpacity onPress={handleWatchAdsClick} id='watchAdsBtn' style={styles.watchAdsButton}>
+                          <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
+                          <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
+                        </TouchableOpacity>
+                      )}
+                    </View>
                   </View>
-                ))
-              )}
-
-              {isTyping && (
-                <View style={styles.typingIndicator}>
-                  <Animatable.Text animation="pulse" iterationCount="infinite" duration={500} style={styles.dot}>
-                    .
-                  </Animatable.Text>
-                  <Animatable.Text animation="pulse" iterationCount="infinite" delay={100} duration={500} style={styles.dot}>
-                    .
-                  </Animatable.Text>
-                  <Animatable.Text animation="pulse" iterationCount="infinite" delay={200} duration={500} style={styles.dot}>
-                    .
-                  </Animatable.Text>
                 </View>
-              )}
-            </ScrollView>
+              </Modal>
 
-            {showScrollDownButton && (
-              <TouchableOpacity style={styles.scrollToTopButton} onPress={() => scrollViewRef.current.scrollToEnd({ animated: true })}>
-                <Ionicons name="arrow-down-outline" size={27} color={"white"} />
-              </TouchableOpacity>
-            )}
-
-            <View style={styles.inputContainer}>
-              {dailyCredits > 0 ? (
-                <View style={[styles.typeCon, isDarkMode && styles.darkTypeCon]}>
-                  <TextInput style={styles.typeYourMessage} value={userInput} onChangeText={setUserInput} placeholder={t('typeYourMessage')} 
-                    placeholderTextColor="black"/>
-                  <TouchableOpacity style={styles.sendBtn} onPress={sendMessage} title={t('send')} >
-                    <Image source={require('./assets/sendIcon.png')} style={{ width: 25, height: 25 }} />
-                  </TouchableOpacity>
-                </View>             
-              ) : (
-                <TouchableOpacity style={[styles.noTypeCon,  isDarkMode && styles.darkNoTypeCon]} onPress={toggleAdModal}>
-                  <Text style={[styles.watchAdsText, isDarkMode && styles.darkWatchAdsText]}>{t('lowCredits')}</Text>
-                </TouchableOpacity>   
-              )}
             </View>
 
-            {isSideMenuVisible && (
-              <View style={styles.sideMenu}>
-                <Animated.View style={[styles.leftMenu, isDarkMode && styles.darkLeftMenu, { transform: [{ translateX: sideMenuAnim } ] }]}>
-                  <TouchableOpacity onPress={() => closeSideMenu(setSideMenuButtonText, sideMenuAnim, rightMenuOpacity, sideMenuWidth, t, setIsSideMenuVisible)} style={styles.leftMenuClose}>
-                    <Ionicons name="close-outline" size={35} color={isDarkMode ? "white" : "black"} />
-                  </TouchableOpacity>
-                  <View style={styles.firstColumn}>
-                    <Image source={require('./assets/logoAI.png')} style={{ width: 55, height: 55 }} />
-                  </View>
-                  <View style={[styles.secondColumn, isDarkMode && styles.darksecondColumn]}>
-                    <TouchableOpacity onPress={newChat} style={styles.fullButton}>
-                      <Text style={[styles.newChatText, isDarkMode && styles.darkBlueText]} >{t('newChat')}</Text>
-                      <Image source={require('./assets/newChat.png')} style={{ width: 25, height: 25 }} />
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.adsBox}>
-                    {dailyCredits > 0 ? (
-                      <Text style={[styles.adsText, isDarkMode && styles.darkText]}>{t('availableCredits')} ({dailyCredits})</Text>
-                    ) : (
-                      <Text style={[styles.noCredits, isDarkMode && styles.darkWatchAdsText]}>{t('noCreditsCount')}</Text>
-                    )}
-                  </View>
-                  <View style={[styles.chatHistory, isDarkMode && styles.darkChatHistory]}>
-                    <Ionicons name="chatbox-ellipses-outline" size={20} color={isDarkMode ? "white" : "black"} />
-                    <Text style={[styles.chatHistoryTitle, isDarkMode && styles.darkText]}>{t('chatHistory')}</Text>
-                  </View>
-                  <FlatList
-                    data={pastChats}
-                    keyExtractor={(item) => item}
-                    renderItem={({ item }) => (
-                      <TouchableOpacity
-                        onPress={() => loadChat(item)}
-                        onLongPress={() => handleLongPress(item)}
-                        style={styles.chatItemContainer} >
-                        <View style={styles.chatContent}>
-                          <View style={styles.row}>
-                            <Text
-                              style={[styles.pastChatItem, isDarkMode && styles.darkText, selectedChat === item && styles.highlightChatItem]}
-                            >
-                              {item}
-                            </Text>
-                            <View style={[styles.ellipsisContainer, isDarkMode && styles.darkEllipsisContainer]}>
-                              <TouchableOpacity onPress={() => toggleDeleteButton(item)} style={styles.ellipsisIcon}>
-                                <Ionicons name="ellipsis-vertical" size={20} color="#555" />
-                              </TouchableOpacity>
-                            </View>
-                          </View>
-                          {selectedChat === item && deleteButtonVisible && (
-                            <View style={[styles.floatingMenu, isDarkMode && styles.darkFloatingMenu]}>
-                              <TouchableOpacity onPress={() => deleteChat(item)} style={[styles.floatingButton, isDarkMode && styles.darkFloatingButton]}>
-                                <Text style={styles.deleteText}>{t('delete')}</Text>
-                              </TouchableOpacity>
-                            </View>
-                          )}
-                        </View>
-                      </TouchableOpacity>
-                    )}
-                    contentContainerStyle={{ padding: 5 }}
-                    style={{ maxHeight: '78%' }}
-                  />
-                  <TouchableOpacity onPress={() => navigation.navigate('Settings', { handleLanguageSelect, deleteAllChats })}>
-                    <View style={[styles.settings, isDarkMode && styles.darkSettings]}>
-                      <Ionicons size={25} color="white" name="settings-outline" />
-                      <Text style={{ marginLeft: 10, color: 'white', fontSize: 16, fontWeight: 'bold' }}>{t('settings')}</Text>
-                    </View>
-                  </TouchableOpacity>
-                </Animated.View>
-                <Animated.View style={[styles.rightMenu, isDarkMode && styles.darkRightMenu, { opacity: rightMenuOpacity }]}>
-                </Animated.View>
-              </View>
-            )}
+          </TouchableWithoutFeedback>
 
-            <Modal animationType="slide" transparent={true} visible={isAdModalVisible} onRequestClose={toggleAdModal} >
-              <View style={styles.adModalBg}>
-                <View style={styles.adModalCon}>
-                  <Text style={styles.adWatchCount}>{t('watchedAds')} {adWatchCount}/10</Text>
+          <BannerAd
+            unitId={adBannerID}
+            size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            requestOptions={{
+              requestNonPersonalizedAdsOnly: true,
+              networkExtras: {
+                collapsible: "bottom",
+              }
+            }}
+          />
 
-                  <TouchableOpacity onPress={toggleAdModal} style={styles.adCloseButton}>
-                    <Ionicons name="close-outline" size={25} color={isDarkMode ? "black" : "white"} />
-                  </TouchableOpacity>
+        </KeyboardAvoidingView>
 
-                  <View style={styles.adUpperCon}>
-                    <Image source={require('./assets/robotAd.jpg')} style={{ width: '100%', height: '100%' }} />
-                  </View>
-                  <View style={styles.adLowerCon}>
-                    <Text style={styles.modalSecText}>{t('watchAdsToGain')}</Text>
-                    <Text style={styles.adModalText}>{t('adAvailableCredits')}</Text>
-
-                    {adWatchCount >= 10 ? (
-                      <View>
-                        {/* 10 ads watched for the day */}
-                        <TouchableOpacity  disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
-                          <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
-                          <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.watchAdsHour}>{t('tenAdsLimit')}</Text>
-                      </View>
-                        // 3 ads an hour watched
-                    ) : lastAdWatchTime && lastAdWatchTime > oneHourAgo && adWatchCount % 3 === 0 ? (
-                      <View>
-                        <TouchableOpacity disabled={true} id='watchAdsBtn' style={styles.disabledWatchAdsButton}>
-                          <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
-                          <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
-                        </TouchableOpacity>
-                        <Text style={styles.watchAdsHour}>{t('OneHrAdsLimit')}</Text>
-
-                      </View>
-                    ) : (
-                      <TouchableOpacity onPress={handleWatchAdsClick} id='watchAdsBtn' style={styles.watchAdsButton}>
-                        <Ionicons name="play" size={18} color={isDarkMode ? "black" : "white"} />
-                        <Text style={styles.watchAdsText}>{t('watchAds')}</Text>
-                      </TouchableOpacity>
-                    )}
-                  </View>
-                </View>
-              </View>
-            </Modal>
-
-          </View>
-
-        </TouchableWithoutFeedback>
-
-        <BannerAd
-          unitId={adBannerID}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-          requestOptions={{
-            requestNonPersonalizedAdsOnly: true,
-            networkExtras: {
-              collapsible: "bottom",
-            }
-          }}
-        />
-
-      </KeyboardAvoidingView>
     </View>
+    </SafeAreaView>
   );
 }
 
@@ -927,5 +932,4 @@ const Chatbot = () => {
 
 export default Chatbot;
 
-console.log('API Key:', REACT_APP_OPENAI_API_KEY); // Optional: For debugging purposes
 

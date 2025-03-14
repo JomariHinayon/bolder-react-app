@@ -88,7 +88,7 @@ android {
 
     namespace 'com.tamaki404.AIBolder'
     defaultConfig {
-        applicationId 'com.tamaki404.AIBolder'
+        applicationId "com.example.chatai"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1
