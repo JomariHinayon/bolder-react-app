@@ -9,16 +9,33 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
-      }
+      },
+      "channel": "development"
     },
     "preview": {
-      "distribution": "internal"
+      "distribution": "internal",
+      "channel": "preview"
     },
-    "production": {
+    "production-apk": {
+      "autoIncrement": true,
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "REACT_APP_OPENAI_API_KEY": "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"
+      },
+      "channel": "production"
+    },
+    
+    "production-aab": {
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
-      }
+      },
+      "env": {
+        "REACT_APP_OPENAI_API_KEY": "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"
+      },
+      "channel": "production"
     }
   },
   "submit": {

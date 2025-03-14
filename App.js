@@ -927,3 +927,5 @@ const Chatbot = () => {
 
 export default Chatbot;
 
+console.log('API Key:', REACT_APP_OPENAI_API_KEY); // Optional: For debugging purposes
+
