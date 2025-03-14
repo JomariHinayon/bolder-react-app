@@ -152,21 +152,22 @@ const SettingsScreen = ({ navigation }) => {
      <Modal visible={modalVisible} transparent animationType="fade">
         <View style={styles.modalBackground}>
           <View style={styles.modalCon}>
-            <Text style={styles.modalTit}>Delete All Chats?</Text>
-            <Text style={styles.modalTxt}>This action cannot be undone.</Text>
+            <Text style={styles.modalTit}>{t('deleteAllChatsTitle')}</Text>
+            <Text style={styles.modalTxt}>{t('deleteAllChatsMessage')}</Text>
             <View style={styles.buttonCon}>
+            <TouchableOpacity
+                style={[styles.button, styles.deleteButton]}
+                onPress={deleteAllChats}
+              >
+                <Text style={styles.buttonText}>{t('Delete')}</Text>
+              </TouchableOpacity>
               <TouchableOpacity
                 style={[styles.button, styles.cancelButton]}
                 onPress={() => setModalVisible(false)}
               >
-                <Text style={styles.buttonText}>Cancel</Text>
+                <Text style={styles.buttonText}>{t('Cancel')}</Text>
               </TouchableOpacity>
-              <TouchableOpacity
-                style={[styles.button, styles.deleteButton]}
-                onPress={deleteAllChats}
-              >
-                <Text style={styles.buttonText}>Delete</Text>
-              </TouchableOpacity>
+            
             </View>
           </View>
         </View>
@@ -203,7 +204,7 @@ const SettingsScreen = ({ navigation }) => {
         <Text style={[styles.cacheText, isDarkMode && styles.darkText]}>
         {t('accumulatedSpace')}        </Text>
         <TouchableOpacity style={styles.deleteAllBtn} onPress={() => setModalVisible(true)}>
-          <Text style={styles.deleteAllText}>{t('clearChatHistory')}</Text> 
+          <Text style={styles.deleteAllText} adjustsFontSizeToFit numberOfLines={2}>{t('clearChatHistory')}</Text> 
         </TouchableOpacity>
       </View>
 

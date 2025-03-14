@@ -321,8 +321,16 @@ const styles = StyleSheet.create({
   typeYourMessage: {color: 'black', fontSize: 17, backgroundColor: 'transparent', width: '80%', marginLeft: 15},
   roundButtonContainer: { borderRadius: 30, height: 55, width: 55, backgroundColor: '', justifyContent: 'center', alignItems: 'center' },
   upperCon: { flexDirection: 'row',  justifyContent: 'space-between', alignItems: 'center', height: '9%', backgroundColor: 'white', padding: 15, width: '100%', borderEndColor: 'black' , borderBottomColor: '#f2f2f5', borderBottomWidth: 1},
-  adBtn: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 15,justifyContent: 'center', alignItems:'center', backgroundColor: 'black', height: 45, padding: 0, gap: 5, width: '40%'},
-  getRewardsText: {color: 'white',  fontWeight: 'bold', fontSize: 14},
+  adBtn: {flexDirection: 'row', justifyContent: 'center', alignItems: 'center', borderRadius: 15,justifyContent: 'space-between', alignItems:'center', backgroundColor: 'black', height: 45, padding: 0,  paddingHorizontal: 10, gap: 5, width: 'auto'},
+  getRewardsText: {
+    color: 'white',
+    fontWeight: 'bold',
+    fontSize: 14,
+    textAlign: 'center',
+    flexWrap: 'wrap',
+    width: '',
+
+  },
   chatTitle: { fontSize: 13, fontWeight: 'bold', color: 'white', textAlign: 'center', flex: 1 },
   sideMenu: { position: 'absolute', justifyContent: 'start', justifyContent: 'start', flex: 1, flexDirection: 'row', backgroundColor: 'transparent',   zIndex: 1000, height: '100%' },
   darkLeftMenu:{ backgroundColor: '#2d2c2e' },

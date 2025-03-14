@@ -117,13 +117,14 @@ const styles = StyleSheet.create({
       backgroundColor: 'white',
       justifyContent: 'center',
       alignItems: 'center',
-      height: 200,
+      height: 'auto',
       gap: 4,
       borderRadius: 10,
       padding: 10,
       borderBottomWidth: 1,
       borderBottomColor: '#ccc',
       backgroundColor: 'white',
+      paddingVertical: 20
     },
     deleteAllBtn:{
       backgroundColor: 'black',
@@ -144,7 +145,10 @@ const styles = StyleSheet.create({
       fontSize: 16,
       color: 'gray',
       textAlign: 'center',
-      fontWeight: 'normal'
+      fontWeight: 'normal',
+      textAlign: 'center',
+      flexWrap: 'wrap',
+      width: '85%'
     },
     deleteAllText:{
       fontSize: 15,
